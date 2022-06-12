@@ -3,7 +3,7 @@
 
 vec3 Object::getTranslation()
 {
-    return transform[3];
+	return transform[3];
 }
 
 quat Object::getRotation()
@@ -29,9 +29,9 @@ void Object::setTranslation(const vec3& translation)
 void Object::setRotation(const quat& rotation)
 {
 	auto rot = mat3_cast(rotation);
-	rot[0] *= length(transform[0]);
-	rot[1] *= length(transform[1]);
-	rot[2] *= length(transform[2]);
+	//rot[0] *= length(transform[0]);
+	//rot[1] *= length(transform[1]);
+	//rot[2] *= length(transform[2]);
 	transform[0] = vec4(rot[0], 0);
 	transform[1] = vec4(rot[1], 0);
 	transform[2] = vec4(rot[2], 0);
@@ -42,6 +42,17 @@ void Object::setScale(const vec3& scale)
 	transform[0] = normalize(transform[0]) * scale[0];
 	transform[1] = normalize(transform[1]) * scale[1];
 	transform[2] = normalize(transform[2]) * scale[2];
+}
+
+mat4 Object::getWorldTransform()
+{
+	Object* it = this;
+	mat4 result = mat4(1);
+	while (it != NULL) {
+		result = it->transform * result;
+		it = it->parent;
+	}
+	return result;
 }
 
 void Object::detach()
@@ -78,9 +89,33 @@ void Object::addChild(Object* child)
 	}
 }
 
+void Object::start()
+{
+	for (auto comp : components) {
+		comp->start();
+	}
+	for (auto child : childs) {
+		child->start();
+	}
+}
+
 void Object::update()
 {
 	for (auto comp : components) {
 		comp->update();
+	}
+	for (auto child : childs) {
+		child->update();
+	}
+}
+
+Object::~Object()
+{
+	detach();
+	for (auto comp : components) {
+		delete comp;
+	}
+	for (auto child : childs) {
+		delete child;
 	}
 }

@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "Window.h"
+#include "Renderer.h"
+#include "Mesh.h"
 
 bool Window::init()
 {
@@ -7,8 +9,10 @@ bool Window::init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_SAMPLES, 16);
+	glfwWindowHint(GLFW_SAMPLES, 16);
 	window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+
+
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -24,49 +28,46 @@ bool Window::init()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui::StyleColorsDark();
-	
+
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
 	return true;
 }
-float v[4] = { 0 };
 void Window::run()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	Object* camera_obj = scene.createObject();
+	Camera* camera = camera_obj->addComponent<Camera>();
+	render_system.setCamera(camera_obj);
+
+	if (setScene)
+		setScene(scene);
+
+	scene.start();
 	while (!glfwWindowShouldClose(window)) {
 
-		glClearColor(v[0], v[1], v[2], v[3]);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
+		scene.update();
 
+		render_system.run(window);
 
-		ImGui::NewFrame();
-
-
-		ImGui::SliderFloat4("sss", v,0,1);
-
-		ImGui::Render();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
+		if (drawUI)
+			drawUI();
 
 		glfwSwapBuffers(window);
-		glfwPollEvents();		
+		glfwPollEvents();
 
 	}
 }

@@ -83,8 +83,8 @@ void Shader::compile(const char* vertexPath, const char* fragmentPath)
 
 	//
 	glBindAttribLocation(ID, 0, "aPos");
-	//glBindAttribLocation(ID, 1, "aNorm");
-	//glBindAttribLocation(ID, 2, "InTexCoord0");
+	glBindAttribLocation(ID, 1, "aNorm");
+	glBindAttribLocation(ID, 2, "InTexCoord0");
 
 	glLinkProgram(ID);
 	// print linking errors if any

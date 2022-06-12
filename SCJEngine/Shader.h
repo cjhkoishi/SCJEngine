@@ -31,8 +31,11 @@ public:
 		auto it = asset.find(name);
 		if (it != asset.end())
 			return it->second;
-		else
-			asset[name].compile(string("shader/").append(name).append(".vert").c_str(), string("shader/").append(name).append(".frag").c_str());
+		else {
+			auto& shader = asset[name];
+			shader.compile(string("../SCJEngine/shader/").append(name).append(".vert").c_str(), string("../SCJEngine/shader/").append(name).append(".frag").c_str());
+			return shader;
+		}
 	};
 };
 

@@ -10,6 +10,10 @@
 #include <glm/gtx/quaternion.hpp>
 using namespace glm;
 
+#include<Eigen/Dense>
+using namespace Eigen;
+#define ETL(S,T) S<T,Eigen::aligned_allocator<T>>
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -21,5 +25,5 @@ using namespace glm;
 #include <set>
 #include <functional>
 #include <algorithm>
-#include <hash_map>
+#include <unordered_map>
 using namespace std;

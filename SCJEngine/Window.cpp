@@ -9,7 +9,7 @@ bool Window::init()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_SAMPLES, 16);
+	//glfwWindowHint(GLFW_SAMPLES, 1);
 	window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
 
 
@@ -28,11 +28,11 @@ bool Window::init()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_LINE_SMOOTH);
-
+	glLineWidth(1);
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -56,7 +56,7 @@ void Window::run()
 	scene.start();
 	while (!glfwWindowShouldClose(window)) {
 
-		glClearColor(0, 0, 0, 0);
+		glClearColor(0.8, 0.8, 0.95, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene.update();

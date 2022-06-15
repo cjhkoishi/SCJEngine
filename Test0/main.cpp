@@ -4,8 +4,9 @@
 #include <Mesh.h>
 #include "Wire2D.h"
 
-float v;
+float v=3500;
 Object* cube;
+Object* canvas;
 void MyUI()
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -13,10 +14,14 @@ void MyUI()
 
 
 	ImGui::NewFrame();
+	ImGui::Begin("DDD");
+	ImGui::SliderFloat("angle", &v, 100, 20000);
+	canvas->getComponent<Wire2D>()->K = v;
 
-	ImGui::SliderFloat("angle", &v, 0, 1);
-
-
+	if (ImGui::Button("reset")) {
+		canvas->getComponent<Wire2D>()->reset();
+	};
+	ImGui::End();
 
 	ImGui::Render();
 
@@ -44,7 +49,7 @@ void MyScene(Scene& scene) {
 	cube_sub->setTranslation(vec3(1, 1, 1));
 	cube->addChild(cube_sub);*/
 
-	Object* canvas = scene.createObject();
+	canvas = scene.createObject();
 	canvas->addComponent<Wire2D>();
 	canvas->addComponent<WireRenderer2D>();
 }

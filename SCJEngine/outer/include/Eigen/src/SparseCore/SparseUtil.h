@@ -175,7 +175,7 @@ public:
   const StorageIndex& col() const { return m_col; }
 
   /** \returns the value of the element */
-  const Scalar& value() const { return m_value; }
+  /*const*/ Scalar& value() /*const*/ { return m_value; }
 protected:
   StorageIndex m_row, m_col;
   Scalar m_value;

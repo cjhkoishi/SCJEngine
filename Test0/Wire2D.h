@@ -26,6 +26,7 @@ public:
 	void computeForce();
 	void computeHessian(SparseMatrix<double>& H);
 	void computeHessian(MatrixXd& H);
+	void computeJacobian(MatrixXd& G1,double dt);
 	void hessianTransfer(MatrixXd& H_D,SparseMatrix<double>& H);
 
 	Wire2D();

@@ -138,7 +138,7 @@ void Wire2D::computeForce()
 		F[2 * i + 1] -= 10;
 	}
 }
-int N = 10;
+int N = 20;
 void Wire2D::reset()
 {
 	for (auto& vel : velocities) {
@@ -163,7 +163,7 @@ void Wire2D::implicitEuler(double dt)
 	memcpy(init_x.data(), vertices.data(), 2 * V * sizeof(double));
 	memcpy(X.data(), vertices.data(), 2 * V * sizeof(double));
 	//ConjugateGradient<MatrixXd> solver;
-	ConjugateGradient<SparseMatrix<double>> solver;
+	SimplicialLLT<SparseMatrix<double>> solver;
 	MatrixXd Hessian_D(V * 2, V * 2);
 	MatrixXd G1_D(V * 2, V * 2);
 	SparseMatrix<double> Hessian(V * 2, V * 2);
@@ -179,17 +179,19 @@ void Wire2D::implicitEuler(double dt)
 		//LARGE_INTEGER t1, t2, tc;
 		//QueryPerformanceFrequency(&tc);
 		//QueryPerformanceCounter(&t1);
-		computeHessian(Hessian_D);
-		G1_D.setIdentity();
-		G1_D -= Hessian_D * dt * dt;	
 
+
+		//computeHessian(Hessian_D);
+		//G1_D.setIdentity();
+		//G1_D -= Hessian_D * dt * dt;
+
+		
 
 		//QueryPerformanceCounter(&t2);
 		//auto time = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
 		//cout << "time = " << time << endl;
+		computeJacobian(G1_D, dt);
 		hessianTransfer(G1_D, G1);
-
-
 		solver.compute(G1);
 		VectorXd D = solver.solve(G);
 
@@ -209,6 +211,37 @@ void Wire2D::implicitEuler(double dt)
 			vertices[i][1] = -2;
 			velocities[i][0] *= 0.9;
 			velocities[i][1] = 0;
+		}
+	}
+}
+
+void Wire2D::computeJacobian(MatrixXd& G1, double dt)
+{
+	G1.setIdentity();
+
+	for (int e = 0; e < edges.size(); e++) {
+
+		auto& es = edges[e];
+		dvec2 v0(X[2 * edges[e][0]], X[2 * edges[e][0] + 1]);
+		dvec2 v1(X[2 * edges[e][1]], X[2 * edges[e][1] + 1]);
+		dvec2 dv = v1 - v0;
+		dvec2 normlized_dv = normalize(dv);
+		double length_dv = std::max<double>(1e-1, length(dv));
+		double coeff = K / length_dv;
+		double d_length = lens[e] - length_dv;
+
+
+		for (int n = 0; n < 4; n++) {
+			int i = n / 2;
+			int j = n % 2;
+
+			double hess = -coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]) * dt * dt;
+
+			G1(2 * es[0] + i, 2 * es[0] + j) += hess;
+			G1(2 * es[1] + i, 2 * es[0] + j) -= hess;
+			G1(2 * es[0] + i, 2 * es[1] + j) -= hess;
+			G1(2 * es[1] + i, 2 * es[1] + j) += hess;
+
 		}
 	}
 }

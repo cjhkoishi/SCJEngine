@@ -7,12 +7,15 @@ class Object
 {
 protected:
 	Scene* _scene = NULL;
+
 	vector<Component*> components;
 	mat4 transform;
 	vector<Object*> childs;
 	Object* parent = NULL;
 	bool is_new = true;
-public:
+public:	
+	string name;
+
 	vec3 getTranslation();
 	quat getRotation();
 	vec3 getScale();
@@ -23,6 +26,8 @@ public:
 	mat4 getTransform() { return transform; };
 	mat4 getTransformInverse() { return inverse(transform); };
 	mat4 getWorldTransform();
+	size_t numChildren() { return childs.size(); };
+	Object* children(size_t index) { if (index >= 0 && index < childs.size())return childs[index]; else return NULL; };
 
 	void detach();
 	void setParent(Object* parent);

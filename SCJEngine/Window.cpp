@@ -3,6 +3,11 @@
 #include "Renderer.h"
 #include "Mesh.h"
 
+Object* Window::getRoot()
+{
+	return scene.getRoot();
+}
+
 bool Window::init()
 {
 	glfwInit();
@@ -46,7 +51,7 @@ bool Window::init()
 }
 void Window::run()
 {
-	Object* camera_obj = scene.createObject();
+	Object* camera_obj = scene.createObject("Camera");
 	Camera* camera = camera_obj->addComponent<Camera>();
 	render_system.setCamera(camera_obj);
 
@@ -64,7 +69,7 @@ void Window::run()
 		render_system.run(window);
 
 		if (drawUI)
-			drawUI();
+			drawUI(this);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

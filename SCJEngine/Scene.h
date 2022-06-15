@@ -9,18 +9,20 @@ public:
 	void start();
 	void update();
 	inline Object* getRoot() { return root; };
-	inline Object* createObject() {
+	inline Object* createObject(string name) {
 		if (root) {
 			Object* res = new Object;
+			res->name = name;
 			root->addChild(res);
 			return res;
 		}
 		return NULL;
 	};
 
-	inline Object* createObject(Object* parent) {
+	inline Object* createObject(string name,Object* parent) {
 		if (parent && parent->_scene == this) {
 			Object* res = new Object;
+			res->name = name;
 			res->parent = parent;
 			res->_scene = this;
 			return res;
@@ -31,6 +33,7 @@ public:
 	Scene() {
 		root = new Object;
 		root->_scene = this;
+		root->name = "Root";
 	};
 };
 

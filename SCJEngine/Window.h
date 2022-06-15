@@ -11,9 +11,10 @@ protected:
 	GLFWwindow* window = NULL;
 	Scene scene;
 public:
-	void (*drawUI)(void) = NULL;
+	void (*drawUI)(Window*) = NULL;
 	void (*setScene)(Scene&) = NULL;
 
+	Object* getRoot();
 	bool init();
 	void run();
 	void destroy();

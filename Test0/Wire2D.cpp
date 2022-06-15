@@ -170,7 +170,7 @@ void Wire2D::implicitEuler(double dt)
 	SparseMatrix<double> G1(V * 2, V * 2);
 
 
-	for (int times = 0; times < 10; times++) {
+	for (int times = 0; times < 20; times++) {
 		computeForce();
 		G = X - F * dt * dt - init_x;
 

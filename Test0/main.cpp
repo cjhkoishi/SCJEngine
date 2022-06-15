@@ -4,18 +4,57 @@
 #include <Mesh.h>
 #include "Wire2D.h"
 
-float v=3500;
+float v = 3500;
 Object* cube;
 Object* canvas;
-void MyUI()
+void MyUI(Window* wnd)
 {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 
 
 	ImGui::NewFrame();
-	ImGui::Begin("DDD");
-	ImGui::SliderFloat("angle", &v, 100, 40000);
+
+	ImGui::Begin("Object Tree");
+	Object* root = wnd->getRoot();
+	function<void(Object*)> drawNode;
+	Object* focused_obj = NULL;
+	drawNode = [&drawNode,&focused_obj](Object* node) {
+		auto num_c = node->numChildren();
+		ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_OpenOnDoubleClick |
+			ImGuiTreeNodeFlags_FramePadding;
+		if (num_c == 0) {
+			base_flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+		bool is_open = ImGui::TreeNodeEx(node->name.c_str(), base_flags);
+		if (ImGui::IsItemFocused()) {
+			focused_obj = node;
+		}
+		if (is_open) {
+			for (int i = 0; i < num_c; i++) {
+				drawNode(node->children(i));
+			}
+			ImGui::TreePop();
+		}
+	};
+	drawNode(root);
+	ImGui::End();
+
+
+	ImGui::Begin("Object viewer");
+	if (focused_obj) {
+		ImGui::Text(focused_obj->name.c_str());
+		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[0]));
+		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[1]));
+		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[2]));
+		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[3]));
+	}
+	ImGui::End();
+
+
+	ImGui::Begin("mass-spring");
+	ImGui::SliderFloat("K", &v, 100, 40000);
 	canvas->getComponent<Wire2D>()->K = v;
 
 	if (ImGui::Button("reset")) {
@@ -49,7 +88,7 @@ void MyScene(Scene& scene) {
 	cube_sub->setTranslation(vec3(1, 1, 1));
 	cube->addChild(cube_sub);*/
 
-	canvas = scene.createObject();
+	canvas = scene.createObject("Canvas");
 	canvas->addComponent<Wire2D>();
 	canvas->addComponent<WireRenderer2D>();
 }

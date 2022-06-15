@@ -15,7 +15,7 @@ void MyUI()
 
 	ImGui::NewFrame();
 	ImGui::Begin("DDD");
-	ImGui::SliderFloat("angle", &v, 100, 20000);
+	ImGui::SliderFloat("angle", &v, 100, 40000);
 	canvas->getComponent<Wire2D>()->K = v;
 
 	if (ImGui::Button("reset")) {

@@ -126,7 +126,7 @@ void Wire2D::computeForce()
 		dvec2 v1(X[2 * edges[e][1]], X[2 * edges[e][1] + 1]);
 		dvec2 dv = v1 - v0;
 		dvec2 normlized_dv = normalize(dv);
-		double length_dv = length(dv);
+		double length_dv = std::max<double>(1e-1, length(dv));
 		dvec2 force = K * (length_dv - lens[e]) * normlized_dv;
 		F[2 * edges[e][0]] += force[0];
 		F[2 * edges[e][0] + 1] += force[1];
@@ -138,7 +138,7 @@ void Wire2D::computeForce()
 		F[2 * i + 1] -= 10;
 	}
 }
-int N = 20;
+int N = 10;
 void Wire2D::reset()
 {
 	for (auto& vel : velocities) {
@@ -163,7 +163,7 @@ void Wire2D::implicitEuler(double dt)
 	memcpy(init_x.data(), vertices.data(), 2 * V * sizeof(double));
 	memcpy(X.data(), vertices.data(), 2 * V * sizeof(double));
 	//ConjugateGradient<MatrixXd> solver;
-	SimplicialLLT<SparseMatrix<double>> solver;
+	ConjugateGradient<SparseMatrix<double>> solver;
 	MatrixXd Hessian_D(V * 2, V * 2);
 	MatrixXd G1_D(V * 2, V * 2);
 	SparseMatrix<double> Hessian(V * 2, V * 2);
@@ -185,21 +185,25 @@ void Wire2D::implicitEuler(double dt)
 		//G1_D.setIdentity();
 		//G1_D -= Hessian_D * dt * dt;
 
-		
+
 
 		//QueryPerformanceCounter(&t2);
 		//auto time = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
 		//cout << "time = " << time << endl;
-		computeJacobian(G1_D, dt);
+
+
+		/**/computeJacobian(G1_D, dt);
 		hessianTransfer(G1_D, G1);
 		solver.compute(G1);
 		VectorXd D = solver.solve(G);
+
+
 
 		X = X - D;
 
 	}
 
-
+	cout << G.norm() << endl;
 
 	computeForce();
 	memcpy(vertices.data(), X.data(), 2 * V * sizeof(double));
@@ -238,8 +242,8 @@ void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 			double hess = -coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]) * dt * dt;
 
 			G1(2 * es[0] + i, 2 * es[0] + j) += hess;
-			G1(2 * es[1] + i, 2 * es[0] + j) -= hess;
-			G1(2 * es[0] + i, 2 * es[1] + j) -= hess;
+			//G1(2 * es[1] + i, 2 * es[0] + j) -= hess;
+			//G1(2 * es[0] + i, 2 * es[1] + j) -= hess;
 			G1(2 * es[1] + i, 2 * es[1] + j) += hess;
 
 		}

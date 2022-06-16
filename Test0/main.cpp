@@ -26,7 +26,7 @@ void MyUI(Window* wnd)
 			ImGuiTreeNodeFlags_OpenOnDoubleClick |
 			ImGuiTreeNodeFlags_FramePadding;
 		if (num_c == 0) {
-			base_flags |= ImGuiTreeNodeFlags_Leaf;
+			base_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
 		}
 		bool is_open = ImGui::TreeNodeEx(node->name.c_str(), base_flags);
 		if (ImGui::IsItemFocused()) {
@@ -46,10 +46,12 @@ void MyUI(Window* wnd)
 	ImGui::Begin("Object viewer");
 	if (focused_obj) {
 		ImGui::Text(focused_obj->name.c_str());
-		ImGui::InputFloat4("0", (float*)&(focused_obj->getTransform()[0]));
-		ImGui::InputFloat4("1", (float*)&(focused_obj->getTransform()[1]));
-		ImGui::InputFloat4("2", (float*)&(focused_obj->getTransform()[2]));
-		ImGui::InputFloat4("3", (float*)&(focused_obj->getTransform()[3]));
+		auto comps = focused_obj->getAllComponents();
+		for (auto comp : comps) {
+			//ImGui::Separator();
+			if (!ImGui::CollapsingHeader(comp->get_type_name().c_str()))
+				continue;
+		}
 	}
 	ImGui::End();
 

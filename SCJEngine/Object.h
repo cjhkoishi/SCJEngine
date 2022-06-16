@@ -28,6 +28,8 @@ public:
 	mat4 getWorldTransform();
 	size_t numChildren() { return childs.size(); };
 	Object* children(size_t index) { if (index >= 0 && index < childs.size())return childs[index]; else return NULL; };
+	vector<Component*> getAllComponents() { return components; };
+
 
 	void detach();
 	void setParent(Object* parent);

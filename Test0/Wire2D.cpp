@@ -138,7 +138,7 @@ void Wire2D::computeForce()
 		F[2 * i + 1] -= 10;
 	}
 }
-int N = 20;
+int N = 10;
 void Wire2D::reset()
 {
 	for (auto& vel : velocities) {
@@ -170,7 +170,7 @@ void Wire2D::implicitEuler(double dt)
 	SparseMatrix<double> G1(V * 2, V * 2);
 	VectorXd D(V * 2);
 
-	for (int times = 0; times < 64; times++) {
+	for (int times = 0; times < 32; times++) {
 		computeForce();
 		G = X - F * dt * dt - init_x;
 

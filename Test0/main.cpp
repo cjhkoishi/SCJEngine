@@ -7,6 +7,7 @@
 float v = 3500;
 Object* cube;
 Object* canvas;
+Object* focused_obj = NULL;
 void MyUI(Window* wnd)
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -18,8 +19,8 @@ void MyUI(Window* wnd)
 	ImGui::Begin("Object Tree");
 	Object* root = wnd->getRoot();
 	function<void(Object*)> drawNode;
-	Object* focused_obj = NULL;
-	drawNode = [&drawNode,&focused_obj](Object* node) {
+
+	drawNode = [&drawNode](Object* node) {
 		auto num_c = node->numChildren();
 		ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow |
 			ImGuiTreeNodeFlags_OpenOnDoubleClick |
@@ -45,10 +46,10 @@ void MyUI(Window* wnd)
 	ImGui::Begin("Object viewer");
 	if (focused_obj) {
 		ImGui::Text(focused_obj->name.c_str());
-		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[0]));
-		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[1]));
-		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[2]));
-		ImGui::InputFloat4("", (float*)&(focused_obj->getTransform()[3]));
+		ImGui::InputFloat4("0", (float*)&(focused_obj->getTransform()[0]));
+		ImGui::InputFloat4("1", (float*)&(focused_obj->getTransform()[1]));
+		ImGui::InputFloat4("2", (float*)&(focused_obj->getTransform()[2]));
+		ImGui::InputFloat4("3", (float*)&(focused_obj->getTransform()[3]));
 	}
 	ImGui::End();
 
@@ -89,7 +90,8 @@ void MyScene(Scene& scene) {
 	cube->addChild(cube_sub);*/
 
 	canvas = scene.createObject("Canvas");
-	canvas->addComponent<Wire2D>();
+	auto wire2D = canvas->addComponent<Wire2D>();
+	cout << ((Component*)wire2D)->get_type_name() << endl;
 	canvas->addComponent<WireRenderer2D>();
 }
 

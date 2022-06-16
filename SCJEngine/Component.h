@@ -1,9 +1,9 @@
 #pragma once
 
-
+#include "pch.h"
 #include <typeinfo> 
 
-#define COMPONENT public: virtual size_t get_type_id() {return typeid(*this).hash_code();};
+#define COMPONENT public: virtual size_t get_type_id() {return typeid(*this).hash_code();}; virtual string get_type_name(){return typeid(*this).name()+6;};
 
 class Object;
 

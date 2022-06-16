@@ -138,7 +138,7 @@ void Wire2D::computeForce()
 		F[2 * i + 1] -= 10;
 	}
 }
-int N = 10;
+int N = 20;
 void Wire2D::reset()
 {
 	for (auto& vel : velocities) {
@@ -168,9 +168,9 @@ void Wire2D::implicitEuler(double dt)
 	MatrixXd G1_D(V * 2, V * 2);
 	SparseMatrix<double> Hessian(V * 2, V * 2);
 	SparseMatrix<double> G1(V * 2, V * 2);
+	VectorXd D(V * 2);
 
-
-	for (int times = 0; times < 20; times++) {
+	for (int times = 0; times < 64; times++) {
 		computeForce();
 		G = X - F * dt * dt - init_x;
 
@@ -192,11 +192,16 @@ void Wire2D::implicitEuler(double dt)
 		//cout << "time = " << time << endl;
 
 
-		/**/computeJacobian(G1_D, dt);
-		hessianTransfer(G1_D, G1);
-		solver.compute(G1);
-		VectorXd D = solver.solve(G);
 
+		computeJacobian(G1_D, dt);
+		/*DenseToSparse(G1_D, G1);
+		solver.compute(G1);
+		VectorXd D = solver.solve(G);*/
+
+		D = G;
+		for (int i = 0; i < D.rows(); i++) {
+			D[i] /= G1_D(i, i);
+		}
 
 
 		X = X - D;
@@ -222,7 +227,7 @@ void Wire2D::implicitEuler(double dt)
 void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 {
 	G1.setIdentity();
-
+	double dt2 = dt * dt;
 	for (int e = 0; e < edges.size(); e++) {
 
 		auto& es = edges[e];
@@ -235,11 +240,13 @@ void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 		double d_length = lens[e] - length_dv;
 
 
+
 		for (int n = 0; n < 4; n++) {
 			int i = n / 2;
 			int j = n % 2;
-
-			double hess = -coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]) * dt * dt;
+			if (i != j)
+				continue;
+			double hess = -coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]) * dt2;
 
 			G1(2 * es[0] + i, 2 * es[0] + j) += hess;
 			//G1(2 * es[1] + i, 2 * es[0] + j) -= hess;
@@ -250,7 +257,7 @@ void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 	}
 }
 
-void Wire2D::hessianTransfer(MatrixXd& H_D, SparseMatrix<double>& H)
+void Wire2D::DenseToSparse(MatrixXd& H_D, SparseMatrix<double>& H)
 {
 	for (auto& trip : Hessian_triplets) {
 		//trip = Triplet<double>(trip.row(), trip.col(), H_D(trip.row(), trip.col()));

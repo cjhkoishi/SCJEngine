@@ -22,7 +22,7 @@ limitations under the License.
   PACKET_BF16 METHOD<PACKET_BF16>(const PACKET_BF16& _x) {          \
     return F32ToBf16(METHOD<PACKET_F>(Bf16ToF32(_x)));              \
   }
-
+ 
 namespace Eigen {
 
 struct bfloat16;

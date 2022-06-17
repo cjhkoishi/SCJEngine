@@ -142,7 +142,7 @@ int N = 10;
 void Wire2D::reset()
 {
 	for (auto& vel : velocities) {
-		vel = dvec2(-1, 0);
+		vel = dvec2(-2, 0);
 	}
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
@@ -218,8 +218,13 @@ void Wire2D::implicitEuler(double dt)
 		velocities[i] += dvec2(F[2 * i], F[2 * i + 1]) * dt;
 		if (vertices[i][1] < -2) {
 			vertices[i][1] = -2;
-			velocities[i][0] *= 0.9;
+			//velocities[i][0] *= 0.9;
 			velocities[i][1] = 0;
+		}
+		if (vertices[i][0] < -2) {
+			vertices[i][0] = -2;
+			//velocities[i][0] *= 0.9;
+			velocities[i][0] = 0;
 		}
 	}
 }
@@ -241,17 +246,13 @@ void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 
 
 
-		for (int n = 0; n < 4; n++) {
-			int i = n / 2;
-			int j = n % 2;
-			if (i != j)
-				continue;
-			double hess = -coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]) * dt2;
+		for (int n = 0; n < 2; n++) {
+			double hess = -coeff * (d_length - normlized_dv[n] * normlized_dv[n]) * dt2;
 
-			G1(2 * es[0] + i, 2 * es[0] + j) += hess;
+			G1(2 * es[0] + n, 2 * es[0] + n) += hess;
 			//G1(2 * es[1] + i, 2 * es[0] + j) -= hess;
 			//G1(2 * es[0] + i, 2 * es[1] + j) -= hess;
-			G1(2 * es[1] + i, 2 * es[1] + j) += hess;
+			G1(2 * es[1] + n, 2 * es[1] + n) += hess;
 
 		}
 	}
@@ -272,7 +273,7 @@ Wire2D::Wire2D()
 	auto cube_index = [](int i, int j)->int {
 		return i * N + j;
 	};
-	velocities.resize(N * N, dvec2(-0.5, 0));
+	velocities.resize(N * N, dvec2(-2, 0));
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
 			vertices.push_back(dvec2(i * 0.2, j * 0.2));

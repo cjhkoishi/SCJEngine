@@ -14,6 +14,8 @@ public:
 	void update() override;
 	mat4 getProjMat();
 
+	void onGui()override;
+
 	virtual ~Camera() {};
 };
 

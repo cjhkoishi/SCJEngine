@@ -26,4 +26,5 @@ using namespace Eigen;
 #include <functional>
 #include <algorithm>
 #include <unordered_map>
+#include <regex>
 using namespace std;

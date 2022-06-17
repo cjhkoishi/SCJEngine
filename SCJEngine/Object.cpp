@@ -1,6 +1,30 @@
 #include "pch.h"
 #include "Object.h"
 
+void Object::updateTransform()
+{
+	auto rot = mat3_cast(storged_rotation);
+	rot[0] *= storged_scale[0];
+	rot[1] *= storged_scale[1];
+	rot[2] *= storged_scale[2];
+	transform[0] = vec4(rot[0], 0);
+	transform[1] = vec4(rot[1], 0);
+	transform[2] = vec4(rot[2], 0);
+}
+
+void Object::onGui()
+{
+	ImGui::Text(name.c_str());
+	ImGui::InputFloat3("position",(float*)& transform[3]);
+	for (auto comp : components) {
+		if (!ImGui::CollapsingHeader(comp->get_type_name().c_str()))
+			continue;
+		ImGui::TreePush();
+		comp->onGui();
+		ImGui::TreePop();
+	}
+}
+
 vec3 Object::getTranslation()
 {
 	return transform[3];
@@ -8,17 +32,12 @@ vec3 Object::getTranslation()
 
 quat Object::getRotation()
 {
-	const mat3 rotMtx(
-		vec3(transform[0]) / length(transform[0]),
-		vec3(transform[1]) / length(transform[1]),
-		vec3(transform[2]) / length(transform[2])
-	);
-	return quat_cast(rotMtx);
+	return storged_rotation;
 }
 
 vec3 Object::getScale()
 {
-	return vec3(length(transform[0]), length(transform[1]), length(transform[2]));
+	return storged_scale;
 }
 
 void Object::setTranslation(const vec3& translation)
@@ -28,20 +47,14 @@ void Object::setTranslation(const vec3& translation)
 
 void Object::setRotation(const quat& rotation)
 {
-	auto rot = mat3_cast(rotation);
-	//rot[0] *= length(transform[0]);
-	//rot[1] *= length(transform[1]);
-	//rot[2] *= length(transform[2]);
-	transform[0] = vec4(rot[0], 0);
-	transform[1] = vec4(rot[1], 0);
-	transform[2] = vec4(rot[2], 0);
+	storged_rotation = rotation;
+	updateTransform();
 }
 
 void Object::setScale(const vec3& scale)
 {
-	transform[0] = normalize(transform[0]) * scale[0];
-	transform[1] = normalize(transform[1]) * scale[1];
-	transform[2] = normalize(transform[2]) * scale[2];
+	storged_scale = scale;
+	updateTransform();
 }
 
 mat4 Object::getWorldTransform()

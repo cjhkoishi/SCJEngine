@@ -8,6 +8,53 @@ Object* Window::getRoot()
 	return scene.getRoot();
 }
 
+void Window::objectViewerGui()
+{
+	ImGui::Begin("Object Viewer");
+
+	ImGui::BeginChild("Tree",ImVec2(150, 0), true);
+	Object* root = getRoot();
+	function<void(Object*)> drawNode;
+
+	drawNode = [&drawNode,this](Object* node) {
+		auto num_c = node->numChildren();
+		ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow |
+			ImGuiTreeNodeFlags_OpenOnDoubleClick |
+			ImGuiTreeNodeFlags_FramePadding;
+		if (num_c == 0) {
+			base_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
+		}		
+		
+		if (focused_obj == node) {
+			base_flags |= ImGuiTreeNodeFlags_Selected;
+		}
+		bool is_open = ImGui::TreeNodeEx(node->name.c_str(), base_flags);
+		if (ImGui::IsItemFocused()) {
+			focused_obj = node;
+		}
+
+		if (is_open) {
+			for (int i = 0; i < num_c; i++) {
+				drawNode(node->children(i));
+			}
+			ImGui::TreePop();
+		}
+	};
+	for (int i = 0; i < root->numChildren(); i++) {
+		drawNode(root->children(i));
+	}
+	ImGui::EndChild();
+
+	ImGui::SameLine();
+
+	ImGui::BeginChild("Components", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()));
+	if (focused_obj) {
+		focused_obj->onGui();
+	}
+	ImGui::EndChild();
+	ImGui::End();
+}
+
 bool Window::init()
 {
 	glfwInit();
@@ -61,15 +108,33 @@ void Window::run()
 	scene.start();
 	while (!glfwWindowShouldClose(window)) {
 
-		glClearColor(0.8, 0.8, 0.95, 1);
+		glClearColor(1, 1, 0.9, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		scene.update();
 
 		render_system.run(window);
 
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		objectViewerGui();
+
 		if (drawUI)
 			drawUI(this);
+
+		ImGui::Render();
+
+		auto io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

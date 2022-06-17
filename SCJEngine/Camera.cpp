@@ -14,3 +14,8 @@ mat4 Camera::getProjMat()
 {
 	return perspective(fov, aspect, near_z, far_z);
 }
+
+void Camera::onGui()
+{
+	ImGui::SliderFloat("fov", &fov, 0.2, 3);
+}

@@ -7,54 +7,9 @@
 float v = 3500;
 Object* cube;
 Object* canvas;
-Object* focused_obj = NULL;
+
 void MyUI(Window* wnd)
 {
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-
-
-	ImGui::NewFrame();
-
-	ImGui::Begin("Object Tree");
-	Object* root = wnd->getRoot();
-	function<void(Object*)> drawNode;
-
-	drawNode = [&drawNode](Object* node) {
-		auto num_c = node->numChildren();
-		ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow |
-			ImGuiTreeNodeFlags_OpenOnDoubleClick |
-			ImGuiTreeNodeFlags_FramePadding;
-		if (num_c == 0) {
-			base_flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_Bullet;
-		}
-		bool is_open = ImGui::TreeNodeEx(node->name.c_str(), base_flags);
-		if (ImGui::IsItemFocused()) {
-			focused_obj = node;
-		}
-		if (is_open) {
-			for (int i = 0; i < num_c; i++) {
-				drawNode(node->children(i));
-			}
-			ImGui::TreePop();
-		}
-	};
-	drawNode(root);
-	ImGui::End();
-
-
-	ImGui::Begin("Object viewer");
-	if (focused_obj) {
-		ImGui::Text(focused_obj->name.c_str());
-		auto comps = focused_obj->getAllComponents();
-		for (auto comp : comps) {
-			//ImGui::Separator();
-			if (!ImGui::CollapsingHeader(comp->get_type_name().c_str()))
-				continue;
-		}
-	}
-	ImGui::End();
-
 
 	ImGui::Begin("mass-spring");
 	ImGui::SliderFloat("K", &v, 100, 40000);
@@ -65,17 +20,7 @@ void MyUI(Window* wnd)
 	};
 	ImGui::End();
 
-	ImGui::Render();
 
-	auto io = ImGui::GetIO();
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		GLFWwindow* backup_current_context = glfwGetCurrentContext();
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent(backup_current_context);
-	}
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void MyScene(Scene& scene) {

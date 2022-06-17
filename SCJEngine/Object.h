@@ -10,11 +10,18 @@ protected:
 
 	vector<Component*> components;
 	mat4 transform;
+	quat storged_rotation;
+	vec3 storged_scale;
+
 	vector<Object*> childs;
 	Object* parent = NULL;
 	bool is_new = true;
+
+	void updateTransform();
 public:	
 	string name;
+
+	void onGui();
 
 	vec3 getTranslation();
 	quat getRotation();

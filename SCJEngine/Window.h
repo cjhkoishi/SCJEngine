@@ -16,9 +16,12 @@ public:
 	void (*setScene)(Scene&) = NULL;
 
 	Object* getRoot();
+	GLFWwindow* getGLFWwindow() { return window; };
 	void objectViewerGui();
 	bool init();
 	void run();
 	void destroy();
+
+	Window() :scene(this) {};
 };
 

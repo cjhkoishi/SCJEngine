@@ -17,6 +17,8 @@ public:
 	VectorXd F;
 	double K,M;
 	vector<Triplet<double>> Hessian_triplets;
+
+	Camera* camera;
 	
 
 	virtual void update();

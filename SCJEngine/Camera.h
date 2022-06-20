@@ -13,6 +13,7 @@ public:
 	void start()override;
 	void update() override;
 	mat4 getProjMat();
+	vec3 getCursorVector(vec2 screen_coord);
 
 	void onGui()override;
 

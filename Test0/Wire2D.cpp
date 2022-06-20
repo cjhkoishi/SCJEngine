@@ -158,6 +158,7 @@ void Wire2D::implicitEuler(double dt)
 	auto E = edges.size();
 
 	for (int i = 0; i < vertices.size(); i++) {
+		velocities[i] *= 0.99;
 		vertices[i] += velocities[i] * dt;
 	}
 
@@ -229,10 +230,12 @@ void Wire2D::implicitEuler(double dt)
 		}
 
 		if (glfwGetMouseButton(_object->getScene()->getWindow()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
-			double pos[2];
-			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), pos, pos + 1);
-			vertices[0][0] = pos[0]/300-2;
-			vertices[0][1] = - pos[1]/300+2;
+			dvec2 pos;
+			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
+			vec3 dir = _object->getScene()->getWindow()->input_system.getCursorDirection(pos);
+			//cout << dir[2] << endl;
+			dir *=- 5/dir[2];
+			vertices[0] = dir;
 			velocities[0] = dvec2(0, 0);
 		}
 	}

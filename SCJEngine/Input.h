@@ -1,11 +1,18 @@
 #pragma once
-class Input
+#include"pch.h"
+class Window;
+class InputSystem
 {
 protected:
-	static bool key_state[256];
-	static bool mouse_left;
-	static bool mouse_right;
+	Window* _wnd;
 public:
 	int getKeyState();
+	vec3 getCursorDirection(vec2 screen_pos);
+
+	InputSystem(Window* _wnd) :
+		_wnd(_wnd)
+	{
+	
+	};
 };
 

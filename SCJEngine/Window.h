@@ -2,6 +2,8 @@
 #include "pch.h"
 #include "Scene.h"
 #include "ViewPort.h"
+#include "Renderer.h"
+#include "Input.h"
 
 class Window
 {
@@ -12,6 +14,9 @@ protected:
 	Object* focused_obj = NULL;
 	Scene scene;
 public:
+	RenderSystem render_system;
+	InputSystem input_system;
+
 	void (*drawUI)(Window*) = NULL;
 	void (*setScene)(Scene&) = NULL;
 
@@ -22,6 +27,9 @@ public:
 	void run();
 	void destroy();
 
-	Window() :scene(this) {};
+	Window() :scene(this),
+		input_system(this)
+	{
+	};
 };
 

@@ -17,6 +17,18 @@ mat4 ViewPort::getProjMat()
 	return active_camera->getProjMat();
 }
 
+vec3 ViewPort::getDirection(vec2 screen_coord)
+{
+	screen_coord = screen_coord * 2.f / vec2(w, h) - 1.f;
+	screen_coord[1] *= -1;
+	double nz = active_camera->near_z;
+	double fz = active_camera->far_z;
+	double invary_z = -((-fz + nz - 2 * fz * nz) / (fz - nz)) * (fz + nz) / (fz - nz);
+	vec4 pointer(screen_coord, invary_z, 1);
+	vec4 dir(vec3(inverse(getProjMat()) * pointer), 0);
+	return (active_camera->getObject()->getTransform()) * dir;
+}
+
 void ViewPort::setActive()
 {
 	glViewport(x, y, w, h);

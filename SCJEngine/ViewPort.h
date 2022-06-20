@@ -22,6 +22,7 @@ public:
 	bool setActiveCamera(Object* camera_obj);
 	mat4 getViewMat();
 	mat4 getProjMat();
+	vec3 getDirection(vec2 screen_coord);
 
 	void setActive();
 };

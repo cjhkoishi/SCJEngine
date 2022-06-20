@@ -17,11 +17,13 @@ public:
 	VectorXd F;
 	double K,M;
 	vector<Triplet<double>> Hessian_triplets;
+
+	Camera* camera;
 	
 
 	virtual void update();
 	void implicitEuler(double dt);
-	void implicitEuler_simp(double dt);
+	//void implicitEuler_simp(double dt);
 	void reset();
 	void computeForce();
 	void computeHessian(SparseMatrix<double>& H);

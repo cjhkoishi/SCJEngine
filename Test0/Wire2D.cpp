@@ -1,4 +1,5 @@
 #include "Wire2D.h"
+#include <Window.h>
 #include <windows.h>¡¡
 #include <Eigen/Dense>
 
@@ -208,7 +209,7 @@ void Wire2D::implicitEuler(double dt)
 
 	}
 
-	cout << G.norm() << endl;
+	//cout << G.norm() << endl;
 
 	computeForce();
 	memcpy(vertices.data(), X.data(), 2 * V * sizeof(double));
@@ -225,6 +226,14 @@ void Wire2D::implicitEuler(double dt)
 			vertices[i][0] = -2;
 			//velocities[i][0] *= 0.9;
 			velocities[i][0] = 0;
+		}
+
+		if (glfwGetMouseButton(_object->getScene()->getWindow()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+			double pos[2];
+			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), pos, pos + 1);
+			vertices[0][0] = pos[0]/300-2;
+			vertices[0][1] = - pos[1]/300+2;
+			velocities[0] = dvec2(0, 0);
 		}
 	}
 }

@@ -22,6 +22,7 @@ public:
 	string name;
 
 	void onGui();
+	Scene* getScene() { return _scene; };
 
 	vec3 getTranslation();
 	quat getRotation();

@@ -23,7 +23,7 @@ public:
 		if (parent && parent->_scene == this) {
 			Object* res = new Object;
 			res->name = name;
-			res->parent = parent;
+			parent->addChild(res);
 			res->_scene = this;
 			return res;
 		}

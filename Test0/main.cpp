@@ -4,9 +4,10 @@
 #include <Mesh.h>
 #include "Wire2D.h"
 
-float v = 3500;
+
 Object* cube;
 Object* canvas;
+float v=3500;
 
 void MyUI(Window* wnd)
 {
@@ -44,7 +45,6 @@ void MyScene(Scene& scene) {
 
 int main() {
 	Window wnd;
-	ViewPort vp;
 
 	wnd.drawUI = MyUI;
 	wnd.setScene = MyScene;

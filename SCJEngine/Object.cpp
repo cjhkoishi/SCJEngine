@@ -73,7 +73,7 @@ void Object::detach()
 	_scene = NULL;
 	if (parent) {
 		auto& container = parent->childs;
-		std::remove(container.begin(), container.end(), this);
+		container.erase(std::remove(container.begin(), container.end(), this));
 		parent = NULL;
 	}
 }

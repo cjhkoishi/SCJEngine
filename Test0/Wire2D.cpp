@@ -7,84 +7,6 @@
 void Wire2D::update()
 {
 	implicitEuler(0.01);
-	//=========================================
-/*for (int i = 0; i < vertices.size(); i++) {
-velocities[i][1] -= 10 * dt;
-//velocities[i] *= 0.99;
-//vertices[i] += dt * velocities[i];
-//if (vertices[i][1] < -1) {
-//	vertices[i][1] = -1;
-//	velocities[i][0] *= 0.5;
-//	velocities[i][1] = 0;
-//}
-}
-for (int e = 0; e < edges.size(); e++) {
-	dvec2& v0 = vertices[edges[e][0]];
-	dvec2& v1 = vertices[edges[e][1]];
-	dvec2 dv = v1 - v0;
-	dvec2 normlized_dv = normalize(dv);
-	double length_dv = length(dv);
-	dvec2 force = K * (length(dv) - lens[e]) * normlized_dv;
-	velocities[edges[e][0]] += force * dt;
-	velocities[edges[e][1]] -= force * dt;
-}
-
-SparseMatrix<double> Hessian(vertices.size() * 2, vertices.size() * 2);
-SparseMatrix<double> A(vertices.size() * 2, vertices.size() * 2);
-VectorXd b(velocities.size() * 2);
-
-for (int e = 0; e < edges.size(); e++) {
-	auto& es = edges[e];
-	dvec2& v0 = vertices[es[0]];
-	dvec2& v1 = vertices[es[1]];
-	dvec2 dv = v1 - v0;
-	dvec2 normlized_dv = normalize(dv);
-	double length_dv = length(dv);
-	double coeff = K / length_dv;
-	double d_length = lens[e] - length_dv;
-	for (int n = 0; n < 4; n++) {
-		int i = n / 2;
-		int j = n % 2;
-
-		double hess = coeff * ((i == j ? d_length : 0) - normlized_dv[i] * normlized_dv[j]);
-
-		Hessian.coeffRef(2 * es[0] + i, 2 * es[0] + j) += hess;
-		Hessian.coeffRef(2 * es[1] + i, 2 * es[0] + j) -= hess;
-		Hessian.coeffRef(2 * es[0] + i, 2 * es[1] + j) -= hess;
-		Hessian.coeffRef(2 * es[1] + i, 2 * es[1] + j) += hess;
-
-	}
-}
-
-memcpy(b.data(), velocities.data(), velocities.size() * sizeof(dvec2));
-
-for (int i = 0; i < b.rows(); i++) {
-	A.coeffRef(i, i) += 1;
-}
-
-A -= Hessian * dt * dt;
-SimplicialLLT<SparseMatrix<double>> solver;
-solver.compute(A);
-VectorXd X = solver.solve(b);
-
-cout << (A * X - b).norm() << endl;
-
-
-memcpy(velocities.data(), X.data(), velocities.size() * sizeof(dvec2));
-
-for (int i = 0; i < vertices.size(); i++) {
-	vertices[i] += dt * velocities[i];
-	if (vertices[i][1] < -1) {
-		vertices[i][1] = -1;
-		velocities[i][0] *= 0.5;
-		velocities[i][1] = 0;
-	}
-}
-*/
-
-
-
-
 }
 
 void Wire2D::computeHessian(SparseMatrix<double>& H)
@@ -127,7 +49,7 @@ void Wire2D::computeForce()
 		dvec2 v1(X[2 * edges[e][1]], X[2 * edges[e][1] + 1]);
 		dvec2 dv = v1 - v0;
 		dvec2 normlized_dv = normalize(dv);
-		double length_dv = std::max<double>(1e-1, length(dv));
+		double length_dv = std::max<double>(1e-3, length(dv));
 		dvec2 force = K * (length_dv - lens[e]) * normlized_dv;
 		F[2 * edges[e][0]] += force[0];
 		F[2 * edges[e][0] + 1] += force[1];
@@ -147,7 +69,7 @@ void Wire2D::reset()
 	}
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
-			vertices[i * N + j] = dvec2(i * 0.2, j * 0.2);
+			vertices[i * N + j] = dvec2(i * 0.3, j * 0.3);
 		}
 	}
 }
@@ -158,14 +80,14 @@ void Wire2D::implicitEuler(double dt)
 	auto E = edges.size();
 
 	for (int i = 0; i < vertices.size(); i++) {
-		velocities[i] *= 0.99;
+		velocities[i] *= 0.999;
 		vertices[i] += velocities[i] * dt;
 	}
 
 	memcpy(init_x.data(), vertices.data(), 2 * V * sizeof(double));
 	memcpy(X.data(), vertices.data(), 2 * V * sizeof(double));
 	//ConjugateGradient<MatrixXd> solver;
-	ConjugateGradient<SparseMatrix<double>> solver;
+	//ConjugateGradient<SparseMatrix<double>> solver;
 	MatrixXd Hessian_D(V * 2, V * 2);
 	MatrixXd G1_D(V * 2, V * 2);
 	SparseMatrix<double> Hessian(V * 2, V * 2);
@@ -234,7 +156,7 @@ void Wire2D::implicitEuler(double dt)
 			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
 			vec3 dir = _object->getScene()->getWindow()->input_system.getCursorDirection(pos);
 			//cout << dir[2] << endl;
-			dir *=- 5/dir[2];
+			dir *= -5 / dir[2];
 			vertices[0] = dir;
 			velocities[0] = dvec2(0, 0);
 		}
@@ -252,7 +174,7 @@ void Wire2D::computeJacobian(MatrixXd& G1, double dt)
 		dvec2 v1(X[2 * edges[e][1]], X[2 * edges[e][1] + 1]);
 		dvec2 dv = v1 - v0;
 		dvec2 normlized_dv = normalize(dv);
-		double length_dv = std::max<double>(1e-1, length(dv));
+		double length_dv = std::max<double>(1e-3, length(dv));
 		double coeff = K / length_dv;
 		double d_length = lens[e] - length_dv;
 
@@ -288,7 +210,7 @@ Wire2D::Wire2D()
 	velocities.resize(N * N, dvec2(-2, 0));
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
-			vertices.push_back(dvec2(i * 0.2, j * 0.2));
+			vertices.push_back(dvec2(i * 0.3, j * 0.3));
 			auto edge_push = [this](ivec2 edge) {
 				edges.push_back(edge);
 			};

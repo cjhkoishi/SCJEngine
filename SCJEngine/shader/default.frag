@@ -7,5 +7,5 @@ uniform mat4 view;
 uniform mat4 projection;
 
 void main(){
-    FragColor=vec4(0.2,0.7,1,1);
+    FragColor=vec4(0.2,0.2,0.2,1);
 }

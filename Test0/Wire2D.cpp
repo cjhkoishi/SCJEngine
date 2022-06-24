@@ -87,6 +87,95 @@ void Wire2D::implicitEuler(double dt)
 	memcpy(init_x.data(), vertices.data(), 2 * V * sizeof(double));
 	memcpy(X.data(), vertices.data(), 2 * V * sizeof(double));
 	//ConjugateGradient<MatrixXd> solver;
+	ConjugateGradient<SparseMatrix<double>> solver;
+	MatrixXd Hessian_D(V * 2, V * 2);
+	MatrixXd G1_D(V * 2, V * 2);
+	SparseMatrix<double> Hessian(V * 2, V * 2);
+	SparseMatrix<double> G1(V * 2, V * 2);
+	VectorXd D(V * 2);
+
+	for (int times = 0; times < 5; times++) {
+		computeForce();
+		G = X - F * dt * dt - init_x;
+
+
+
+		//LARGE_INTEGER t1, t2, tc;
+		//QueryPerformanceFrequency(&tc);
+		//QueryPerformanceCounter(&t1);
+
+
+		computeHessian(Hessian_D);
+		G1_D.setIdentity();
+		G1_D -= Hessian_D * dt * dt;
+
+
+
+		//QueryPerformanceCounter(&t2);
+		//auto time = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
+		//cout << "time = " << time << endl;
+
+
+
+		//computeJacobian(G1_D, dt);
+		DenseToSparse(G1_D, G1);
+		solver.compute(G1);
+		VectorXd D = solver.solve(G);/**/
+
+		D = G;
+		for (int i = 0; i < D.rows(); i++) {
+			D[i] /= G1_D(i, i);
+		}
+
+
+		X = X - D;
+
+	}
+
+	cout << G.norm() << endl;
+
+	computeForce();
+	memcpy(vertices.data(), X.data(), 2 * V * sizeof(double));
+
+	for (int i = 0; i < V; i++) {
+
+		velocities[i] += dvec2(F[2 * i], F[2 * i + 1]) * dt;
+		if (vertices[i][1] < -2) {
+			vertices[i][1] = -2;
+			//velocities[i][0] *= 0.9;
+			velocities[i][1] = 0;
+		}
+		if (vertices[i][0] < -2) {
+			vertices[i][0] = -2;
+			//velocities[i][0] *= 0.9;
+			velocities[i][0] = 0;
+		}
+
+		if (glfwGetMouseButton(_object->getScene()->getWindow()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+			dvec2 pos;
+			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
+			vec3 dir = _object->getScene()->getWindow()->input_system.getCursorDirection(pos);
+			//cout << dir[2] << endl;
+			dir *= -5 / dir[2];
+			vertices[0] = dir;
+			velocities[0] = dvec2(0, 0);
+		}
+	}
+}
+
+void Wire2D::implicitEuler_simp(double dt)
+{
+	auto V = vertices.size();
+	auto E = edges.size();
+
+	for (int i = 0; i < vertices.size(); i++) {
+		velocities[i] *= 0.999;
+		vertices[i] += velocities[i] * dt;
+	}
+
+	memcpy(init_x.data(), vertices.data(), 2 * V * sizeof(double));
+	memcpy(X.data(), vertices.data(), 2 * V * sizeof(double));
+	//ConjugateGradient<MatrixXd> solver;
 	//ConjugateGradient<SparseMatrix<double>> solver;
 	MatrixXd Hessian_D(V * 2, V * 2);
 	MatrixXd G1_D(V * 2, V * 2);
@@ -98,35 +187,12 @@ void Wire2D::implicitEuler(double dt)
 		computeForce();
 		G = X - F * dt * dt - init_x;
 
-
-
-		//LARGE_INTEGER t1, t2, tc;
-		//QueryPerformanceFrequency(&tc);
-		//QueryPerformanceCounter(&t1);
-
-
-		//computeHessian(Hessian_D);
-		//G1_D.setIdentity();
-		//G1_D -= Hessian_D * dt * dt;
-
-
-
-		//QueryPerformanceCounter(&t2);
-		//auto time = (double)(t2.QuadPart - t1.QuadPart) / (double)tc.QuadPart;
-		//cout << "time = " << time << endl;
-
-
-
 		computeJacobian(G1_D, dt);
-		/*DenseToSparse(G1_D, G1);
-		solver.compute(G1);
-		VectorXd D = solver.solve(G);*/
 
 		D = G;
 		for (int i = 0; i < D.rows(); i++) {
 			D[i] /= G1_D(i, i);
 		}
-
 
 		X = X - D;
 
@@ -274,7 +340,7 @@ void Wire2D::computeHessian(MatrixXd& H)
 		dvec2 v1(X[2 * edges[e][1]], X[2 * edges[e][1] + 1]);
 		dvec2 dv = v1 - v0;
 		dvec2 normlized_dv = normalize(dv);
-		double length_dv = std::max<double>(1e-1, length(dv));
+		double length_dv = std::max<double>(1e-3, length(dv));
 		double coeff = K / length_dv;
 		double d_length = lens[e] - length_dv;
 

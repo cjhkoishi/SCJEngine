@@ -23,7 +23,7 @@ public:
 
 	virtual void update();
 	void implicitEuler(double dt);
-	//void implicitEuler_simp(double dt);
+	void implicitEuler_simp(double dt);
 	void reset();
 	void computeForce();
 	void computeHessian(SparseMatrix<double>& H);

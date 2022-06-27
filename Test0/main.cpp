@@ -1,4 +1,4 @@
-#include <Window.h>
+#include <Widget.h>
 #include <ViewPort.h>
 #include <Renderer.h>
 #include <Mesh.h>
@@ -9,7 +9,7 @@ Object* cube;
 Object* canvas;
 float v=3500;
 
-void MyUI(Window* wnd)
+void MyUI(Widget* wnd)
 {
 
 	ImGui::Begin("mass-spring");
@@ -44,7 +44,7 @@ void MyScene(Scene& scene) {
 }
 
 int main() {
-	Window wnd;
+	Widget wnd;
 
 	wnd.drawUI = MyUI;
 	wnd.setScene = MyScene;

@@ -1,4 +1,4 @@
-#include<Window.h>
+#include<Widget.h>
 #include<Mesh.h>
 
 void MyScene(Scene& sc) {
@@ -12,7 +12,7 @@ void MyScene(Scene& sc) {
 }
 
 int main() {
-	Window wnd;
+	Widget wnd;
 	wnd.setScene = MyScene;
 	wnd.init();
 	wnd.run();

@@ -1,14 +1,14 @@
 #include "pch.h"
-#include "Window.h"
+#include "Widget.h"
 #include "Renderer.h"
 #include "Mesh.h"
 
-Object* Window::getRoot()
+Object* Widget::getRoot()
 {
 	return scene.getRoot();
 }
 
-void Window::objectViewerGui()
+void Widget::objectViewerGui()
 {
 	ImGui::Begin("Object Viewer");
 
@@ -55,7 +55,7 @@ void Window::objectViewerGui()
 	ImGui::End();
 }
 
-bool Window::init()
+bool Widget::init()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -63,7 +63,7 @@ bool Window::init()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_SAMPLES, 1);
 	window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-
+	glfwSetWindowUserPointer(window, this);
 
 	if (window == NULL)
 	{
@@ -94,9 +94,11 @@ bool Window::init()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
 
+	input_system.init();
+
 	return true;
 }
-void Window::run()
+void Widget::run()
 {
 	Object* camera_obj = scene.createObject("Camera");
 	Camera* camera = camera_obj->addComponent<Camera>();
@@ -108,8 +110,8 @@ void Window::run()
 	scene.start();
 	while (!glfwWindowShouldClose(window)) {
 
-		glClearColor(1, 1, 0.9, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		input_system.run();
 
 		scene.update();
 
@@ -142,7 +144,7 @@ void Window::run()
 	}
 }
 
-void Window::destroy()
+void Widget::destroy()
 {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();

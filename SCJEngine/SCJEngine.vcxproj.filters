@@ -36,7 +36,7 @@
     <ClInclude Include="Object.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
+    <ClInclude Include="Widget.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ViewPort.h">
@@ -62,7 +62,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="Widget.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="outer\src\glad.c">

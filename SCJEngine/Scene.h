@@ -1,17 +1,17 @@
 #pragma once
 #include "pch.h"
 #include "Object.h"
-class Window;
+class Widget;
 class Scene
 {
 protected:
-	Window* wnd=NULL;
+	Widget* wnd=NULL;
 	Object* root = NULL;
 public:
 	void start();
 	void update();
 
-	Window* getWindow() { return wnd; };
+	Widget* getWidget() { return wnd; };
 
 	inline Object* getRoot() { return root; };
 	inline Object* createObject(string name) {
@@ -35,7 +35,7 @@ public:
 		return NULL;
 	};
 
-	Scene(Window* wnd):
+	Scene(Widget* wnd):
 		wnd(wnd) 
 	{
 		root = new Object;

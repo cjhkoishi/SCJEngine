@@ -18,7 +18,7 @@ protected:
 	bool is_new = true;
 
 	void updateTransform();
-public:	
+public:
 	string name;
 
 	void onGui();
@@ -31,6 +31,17 @@ public:
 	void setRotation(const quat& rotation);
 	void setScale(const vec3& scale);
 
+	void setTransform(const mat4& transform) {
+		this->transform = transform;
+		mat3 ro(1);
+		ro[0] = normalize(transform[0]);
+		ro[1] = normalize(transform[1]);
+		ro[2] = normalize(transform[2]);
+		storged_rotation = quat_cast(ro);
+		storged_scale[0] = length(transform[0]);
+		storged_scale[1] = length(transform[1]);
+		storged_scale[2] = length(transform[2]);
+	}
 	mat4 getTransform() { return transform; };
 	mat4 getTransformInverse() { return inverse(transform); };
 	mat4 getWorldTransform();
@@ -53,6 +64,7 @@ public:
 	};
 	~Object();
 
+	friend class Component;
 	friend class Scene;
 };
 

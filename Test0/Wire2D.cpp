@@ -1,5 +1,5 @@
 #include "Wire2D.h"
-#include <Window.h>
+#include <Widget.h>
 #include <windows.h>¡¡
 #include <Eigen/Dense>
 
@@ -151,10 +151,10 @@ void Wire2D::implicitEuler(double dt)
 			velocities[i][0] = 0;
 		}
 
-		if (glfwGetMouseButton(_object->getScene()->getWindow()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+		if (glfwGetMouseButton(_object->getScene()->getWidget()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
 			dvec2 pos;
-			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
-			vec3 dir = _object->getScene()->getWindow()->input_system.getCursorDirection(pos);
+			glfwGetCursorPos(_object->getScene()->getWidget()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
+			vec3 dir = _object->getScene()->getWidget()->input_system.getCursorDirection(pos);
 			//cout << dir[2] << endl;
 			dir *= -5 / dir[2];
 			vertices[0] = dir;
@@ -217,10 +217,10 @@ void Wire2D::implicitEuler_simp(double dt)
 			velocities[i][0] = 0;
 		}
 
-		if (glfwGetMouseButton(_object->getScene()->getWindow()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
+		if (glfwGetMouseButton(_object->getScene()->getWidget()->getGLFWwindow(), GLFW_MOUSE_BUTTON_LEFT)) {
 			dvec2 pos;
-			glfwGetCursorPos(_object->getScene()->getWindow()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
-			vec3 dir = _object->getScene()->getWindow()->input_system.getCursorDirection(pos);
+			glfwGetCursorPos(_object->getScene()->getWidget()->getGLFWwindow(), (double*)&pos, (double*)&pos + 1);
+			vec3 dir = _object->getScene()->getWidget()->input_system.getCursorDirection(pos);
 			//cout << dir[2] << endl;
 			dir *= -5 / dir[2];
 			vertices[0] = dir;

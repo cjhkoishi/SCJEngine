@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Renderer.h"
 #include "Scene.h"
-#include "Window.h"
+#include "Widget.h"
 
 void Renderer::update()
 {
-	_object->getScene()->getWindow()->render_system.append(this);
+	_object->getScene()->getWidget()->render_system.append(this);
 }
 
 void RenderSystem::setFullWindow(GLFWwindow* window)
@@ -18,6 +18,8 @@ void RenderSystem::setFullWindow(GLFWwindow* window)
 
 void RenderSystem::run(GLFWwindow* window)
 {
+	glClearColor(0, 0, 0, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	setFullWindow(window);
 	mat4 view = render_area.getViewMat();
 	mat4 proj = render_area.getProjMat();

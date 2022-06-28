@@ -147,9 +147,11 @@
   <ItemGroup>
     <ClCompile Include="CAANURBSCurve.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Nurbs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CAANURBSCurve.h" />
+    <ClInclude Include="Nurbs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

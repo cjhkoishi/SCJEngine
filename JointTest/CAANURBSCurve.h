@@ -520,10 +520,13 @@ public:
 
 	struct Constraint {
 	public:
+		double t;
 		int level = 0;
 		CAAVector<3> position;
 		CAAVector<3> tangent;
 		CAAVector<3> curvature;
+
+		void regularize();
 	};
 
 	//////////////////////////////////////////
@@ -535,7 +538,7 @@ public:
 	// 创建日期： 2022-06-27
 	// 版权所有： 浙江大学-几何与拓扑计算
 	//////////////////////////////////////////
-	void getVariablePts(CAANURBSCurve<3>& curve, vector<double> ts,vector<int>& variables);
+	void getVariablePts(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool>& variables);
 
 	//////////////////////////////////////////
 	// 功能描述： 本函数用于在给定曲线上加入指定的多个约束
@@ -546,7 +549,7 @@ public:
 	// 创建日期： 2022-06-27
 	// 版权所有： 浙江大学-几何与拓扑计算
 	//////////////////////////////////////////
-	void multiGeoConstraint(CAANURBSCurve<3>& curve,map<int,Constraint> constraints,vector<int> variables);
+	void multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables);
 };
 
 class CAANURBSWire {

@@ -9,6 +9,7 @@ public:
 	float fov = radians<float>(45);
 	float near_z = 0.01f, far_z = 1000.f;
 	float aspect;
+	bool controllable = true;
 
 	void start()override;
 	void update() override;

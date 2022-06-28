@@ -35,6 +35,8 @@ public:
 		return NULL;
 	};
 
+	Object* findByName(string name);
+
 	Scene(Widget* wnd):
 		wnd(wnd) 
 	{

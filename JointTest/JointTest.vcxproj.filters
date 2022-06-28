@@ -21,9 +21,15 @@
     <ClCompile Include="CAANURBSCurve.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Nurbs.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CAANURBSCurve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Nurbs.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

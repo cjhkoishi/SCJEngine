@@ -6,7 +6,7 @@
 
 void Wire2D::update()
 {
-	implicitEuler(0.01);
+	implicitEuler_simp(0.01);
 }
 
 void Wire2D::computeHessian(SparseMatrix<double>& H)
@@ -387,6 +387,7 @@ void WireRenderer2D::render(const mat4& view, const mat4& proj)
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, (GLfloat*)&model);
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, (GLfloat*)&view);
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, (GLfloat*)&proj);
+		shader.setVec4("color", vec4(1, 1, 1, 1));
 		glDrawElements(GL_LINES, wire->edges.size() * 2, GL_UNSIGNED_INT, 0);
 		glEnable(GL_DEPTH_TEST);
 	}

@@ -215,6 +215,16 @@
     <ClCompile Include="ViewPort.cpp" />
     <ClCompile Include="Widget.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\default.frag" />
+    <None Include="shader\default.vert" />
+    <None Include="shader\mesh.frag" />
+    <None Include="shader\mesh.vert" />
+    <None Include="shader\ray_tracing.frag" />
+    <None Include="shader\ray_tracing.vert" />
+    <None Include="shader\ray_tracing_pass2.frag" />
+    <None Include="shader\ray_tracing_pass2.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

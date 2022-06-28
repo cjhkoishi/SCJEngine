@@ -22,6 +22,9 @@
     <Filter Include="组件类">
       <UniqueIdentifier>{2a6918ad-2289-4846-ada9-7b69e8f3eb47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shader">
+      <UniqueIdentifier>{0dc63f05-ce50-4059-b652-073eb4dfb937}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -116,5 +119,31 @@
     <ClCompile Include="Input.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shader\default.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\default.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\mesh.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\mesh.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ray_tracing.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ray_tracing.vert">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ray_tracing_pass2.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="shader\ray_tracing_pass2.vert">
+      <Filter>shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

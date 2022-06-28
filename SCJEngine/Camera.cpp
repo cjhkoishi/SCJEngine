@@ -9,7 +9,8 @@ void Camera::start()
 
 void Camera::update()
 {
-	
+	if (!controllable)
+		return;
 	Widget* app = _object->getScene()->getWidget();
 	auto wo = app->input_system.getWheelOffset();
 	if (wo[1] != 0) {

@@ -1547,12 +1547,223 @@ void EnergyFairing::addGeometricConstraintsOnKnot(CAANURBSCurve<3>& curve, doubl
 	}
 }
 
-void EnergyFairing::getVariablePts(CAANURBSCurve<3>& curve, vector<double> ts, vector<int>& variables)
+void EnergyFairing::getVariablePts(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool>& variables)
 {
+	int n = curve.control_points.size();
+
+	variables.resize(n, false);
+	for (auto& cons : constraints) {
+		int k = curve.findClosest(cons.t);
+		int multis = 0;
+		for (int i = k; i >= 0; i--)
+			if (curve.knot_vector[i] == cons.t)
+				multis++;
+			else
+				break;
+		for (int i = 0; i < n; i++) {
+			if (i < k && i >= k - curve.p - multis + 1)
+				variables[i] = true;
+		}
+	}
 }
 
-void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, map<int, Constraint> constraints, vector<int> variables)
+void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables)
 {
+	//预处理
+	int n = curve.control_points.size();
+	assert(n == variables.size());
+	vector<int> var_idx, cst_idx;
+	for (int i = 0; i < n; i++)
+	{
+		if (variables[i])
+			var_idx.push_back(i);
+		else
+			cst_idx.push_back(i);
+	}
+	int vn = var_idx.size();
+	int cn = cst_idx.size();
+
+	//处理输入约束，预计算矩阵尺寸
+	int degree_map[3] = { 3,5,7 };
+	int total_degree = 0;
+	for (auto& cons : constraints) {
+		total_degree += degree_map[cons.level];
+	}
+	assert(vn * 3 >= total_degree);//检查变量顶点自由度是否不小于约束自由度
+	int M = 3 * vn + total_degree; // varible:3*vn|position:3|tangent:2|curvature:2
+
+	//线性化迭代
+	for (int iter = 0; iter < 3; iter++) {
+		CAADynamicMatrix Lag(M, M);
+		CAADynamicMatrix b(M, 1);
+		// calculate the constant term in derivation
+		CAADynamicMatrix Bij(vn, cn);
+		CAADynamicMatrix Xc(cn, 1), Yc(cn, 1), Zc(cn, 1);
+		CAADynamicMatrix Bin(vn, n);
+		CAADynamicMatrix Xq(n, 1), Yq(n, 1), Zq(n, 1);
+
+		for (int i = 0; i < vn; i++)
+			for (int j = 0; j < cn; j++)
+				Bij(i, j) =
+				(alpha == 0 ? 0 : alpha * curve.energyInteral(var_idx[i], cst_idx[j], 1)) +
+				(beta == 0 ? 0 : beta * curve.energyInteral(var_idx[i], cst_idx[j], 2)) +
+				(gamma == 0 ? 0 : gamma * curve.energyInteral(var_idx[i], cst_idx[j], 3)) +
+				(delta == 0 ? 0 : delta * curve.energyInteral(var_idx[i], cst_idx[j], 0));
+		for (int j = 0; j < cn; j++)
+		{
+			CAAVector<3>& Pc = curve.control_points[cst_idx[j]];
+			Xc[j] = Pc[0];
+			Yc[j] = Pc[1];
+			Zc[j] = Pc[2];
+		}
+		for (int i = 0; i < vn; i++)
+			for (int j = 0; j < n; j++)
+				Bin(i, j) = delta == 0 ? 0 : delta * curve.energyInteral(var_idx[i], j, 0);
+
+		for (int j = 0; j < n; j++)
+		{
+			CAAVector<3> Pc = curve.control_points[j];
+			Xq[j] = Pc[0];
+			Yq[j] = Pc[1];
+			Zq[j] = Pc[2];
+		}
+
+		CAADynamicMatrix QX = Bij * Xc - Bin * Xq;
+		CAADynamicMatrix QY = Bij * Yc - Bin * Yq;
+		CAADynamicMatrix QZ = Bij * Zc - Bin * Zq;
+
+		// 设置Lag矩阵的能量部分
+		for (int i = 0; i < vn; i++)
+			for (int j = i; j < vn; j++)
+			{
+				int I = 3 * i, J = 3 * j;
+				Lag(I, J) = Lag(J, I) =
+					Lag(I + 1, J + 1) = Lag(J + 1, I + 1) =
+					Lag(I + 2, J + 2) = Lag(J + 2, I + 2) =
+					(alpha == 0 ? 0 : alpha * curve.energyInteral(var_idx[i], var_idx[j], 1)) +
+					(beta == 0 ? 0 : beta * curve.energyInteral(var_idx[i], var_idx[j], 2)) +
+					(gamma == 0 ? 0 : gamma * curve.energyInteral(var_idx[i], var_idx[j], 3)) +
+					(delta == 0 ? 0 : delta * curve.energyInteral(var_idx[i], var_idx[j], 0));
+			}
+		// 设置b的能量部分
+		for (int j = 0; j < vn; j++)
+		{
+			int J = 3 * j;
+			b[J] = -QX[j];
+			b[J + 1] = -QY[j];
+			b[J + 2] = -QZ[j];
+		}
+
+		//约束部分
+		int constraint_idx = vn * 3;
+		for (auto& cons : constraints) {
+			// 当前约束的预处理
+			CAAVector<3> current_C_d = iter == 0 ? cons.tangent : curve.eval(cons.t, 1);
+			double norm4_C_d = pow(current_C_d.norm(), 4);
+			// 设置坐标映射使Z坐标非零，避免拉格朗日矩阵奇异
+			int coord_map[3] = { 0, 1, 2 };
+			double len = cons.tangent.norm();
+			int nonzero_index = abs(cons.tangent[2] / len) > 0.1 ? 2 : (abs(cons.tangent[1] / len) > 0.1 ? 1 : 0);
+			swap(coord_map[nonzero_index], coord_map[2]);
+
+			// 设置Lag矩阵的位置约束
+			for (int j = 0, I = constraint_idx; j < vn; j++)
+			{
+				int J = 3 * j;
+				Lag(I, J) = Lag(J, I) =
+					Lag(I + 1, J + 1) = Lag(J + 1, I + 1) =
+					Lag(I + 2, J + 2) = Lag(J + 2, I + 2) = curve.B_d(var_idx[j], cons.t, 0);
+			}
+
+			if (cons.level >= 1) {
+				// 设置Lag矩阵的切向约束
+				for (int j = 0, I = constraint_idx + 3; j < vn; j++)
+				{
+					int J = 3 * j;
+					double N_dj = curve.B_d(var_idx[j], cons.t, 1);
+
+					Lag(J + coord_map[0], I) = Lag(I, J + coord_map[0]) = N_dj * cons.tangent[coord_map[2]];
+					Lag(J + coord_map[2], I) = Lag(I, J + coord_map[2]) = -N_dj * cons.tangent[coord_map[0]];
+
+					Lag(J + coord_map[1], I + 1) = Lag(I + 1, J + coord_map[1]) = N_dj * cons.tangent[coord_map[2]];
+					Lag(J + coord_map[2], I + 1) = Lag(I + 1, J + coord_map[2]) = -N_dj * cons.tangent[coord_map[1]];
+				}
+			}
+			double dx = current_C_d[0], dy = current_C_d[1], dz = current_C_d[2];
+			double TxTx[3][3] = {
+				{dy * dy + dz * dz, -dx * dy, -dx * dz},
+				{-dx * dy, dx * dx + dz * dz, -dy * dz},
+				{-dz * dx, -dz * dy, dx * dx + dy * dy} };
+			if (cons.level >= 2) {
+				// 设置Lag矩阵的线性化曲率约束
+
+				for (int j = 0, I = constraint_idx + 5; j < vn; j++)
+				{
+					int J = 3 * j;
+					double N_dj = curve.B_d(var_idx[j], cons.t, 2);
+					Lag(J, I) = Lag(I, J) = N_dj * TxTx[coord_map[0]][0];
+					Lag(J + 1, I) = Lag(I, J + 1) = N_dj * TxTx[coord_map[0]][1];
+					Lag(J + 2, I) = Lag(I, J + 2) = N_dj * TxTx[coord_map[0]][2];
+
+					Lag(J, I + 1) = Lag(I + 1, J) = N_dj * TxTx[coord_map[1]][0];
+					Lag(J + 1, I + 1) = Lag(I + 1, J + 1) = N_dj * TxTx[coord_map[1]][1];
+					Lag(J + 2, I + 1) = Lag(I + 1, J + 2) = N_dj * TxTx[coord_map[1]][2];
+				}
+			}
+
+			// 设置b的位置约束
+			b[constraint_idx] = cons.position[0];
+			b[constraint_idx + 1] = cons.position[1];
+			b[constraint_idx + 2] = cons.position[2];
+			for (int j = 0; j < cn; j++)
+			{
+				CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 0) * curve.control_points[cst_idx[j]];
+				b[constraint_idx] -= cst_P[0];
+				b[constraint_idx + 1] -= cst_P[1];
+				b[constraint_idx + 2] -= cst_P[2];
+			}
+			if (cons.level >= 1) {
+				// 设置b的切向约束
+				b[constraint_idx + 3] = 0;
+				b[constraint_idx + 4] = 0;
+				for (int j = 0; j < cn; j++)
+				{
+					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 1) * curve.control_points[cst_idx[j]];
+					b[constraint_idx + 3] -= cst_P[coord_map[0]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[0]];
+					b[constraint_idx + 4] -= cst_P[coord_map[1]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[1]];
+				}
+			}
+			if (cons.level >= 2) {
+				// 设置b的线性化曲率约束
+				b[constraint_idx + 5] = cons.curvature[coord_map[0]] * norm4_C_d;
+				b[constraint_idx + 6] = cons.curvature[coord_map[1]] * norm4_C_d;
+				for (int j = 0; j < cn; j++)
+				{
+					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 1) * curve.control_points[cst_idx[j]];
+					b[constraint_idx + 5] -=
+						cst_P[0] * TxTx[coord_map[0]][0] + cst_P[1] * TxTx[coord_map[0]][1] + cst_P[2] * TxTx[coord_map[0]][2];
+					b[constraint_idx + 6] -=
+						cst_P[0] * TxTx[coord_map[1]][0] + cst_P[1] * TxTx[coord_map[1]][1] + cst_P[2] * TxTx[coord_map[1]][2];
+				}
+			}
+
+			//设置定位指标
+			constraint_idx += degree_map[cons.level];
+
+		}
+		// solve linear system
+		CAADynamicMatrix Sol = Lag.LUPSolve(b);
+
+		// give the result
+		for (int i = 0; i < vn; i++)
+		{
+			int I = 3 * i;
+			CAAVector<3>& P = curve.control_points[var_idx[i]];
+			P[0] = Sol[I];
+			P[1] = Sol[I + 1];
+			P[2] = Sol[I + 2];
+		}
+	}
 }
 
 template <int dim>
@@ -1692,3 +1903,13 @@ CAANURBSCurve<3>::CAANURBSCurve(const CATNurbsCurve& nurbs)
 #endif
 template class CAANURBSCurve<2>;
 template class CAANURBSCurve<3>;
+
+void EnergyFairing::Constraint::regularize()
+{
+	if (level >= 1) {
+		tangent = tangent / tangent.norm();
+		if (level >= 2) {
+			curvature = curvature - (tangent.dot(curvature)) / (tangent.dot(tangent)) * tangent;
+		}
+	}
+}

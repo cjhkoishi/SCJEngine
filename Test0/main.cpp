@@ -41,6 +41,9 @@ void MyScene(Scene& scene) {
 	auto wire2D = canvas->addComponent<Wire2D>();
 	cout << ((Component*)wire2D)->get_type_name() << endl;
 	canvas->addComponent<WireRenderer2D>();
+
+	Object* camera = scene.findByName("Camera");
+	camera->getComponent<Camera>()->controllable = false;
 }
 
 int main() {

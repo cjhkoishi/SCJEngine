@@ -1,8 +1,6 @@
 #pragma once
 #include "pch.h"
 
-
-
 class Shader
 {
 public:
@@ -13,6 +11,7 @@ public:
 	Shader(const char* vertexPath, const char* fragmentPath);
 
 	// use/activate the shader
+	void compileRaw(const char* vertexCode, const char* fragmentCode);
 	void compile(const char* vertexPath, const char* fragmentPath);
 	void use();
 	void disable();
@@ -21,7 +20,8 @@ public:
 	void setBool(const string& name, bool value);
 	void setInt(const string& name, int value);
 	void setFloat(const string& name, float value);
-	void SetMat4(const string& name, const mat4& value);
+	void setMat4(const string& name, const mat4& value);
+	void setVec4(const string& name, const vec4& value);
 };
 
 class ShaderAsset {

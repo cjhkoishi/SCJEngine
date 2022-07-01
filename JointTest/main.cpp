@@ -66,6 +66,7 @@ void myUI(Widget* wnd) {
 }
 
 int main() {
+
 	Widget wnd;
 	wnd.setScene = MyScene;
 	wnd.drawUI = myUI;

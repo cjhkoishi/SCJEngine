@@ -1538,12 +1538,19 @@ void EnergyFairing::addGeometricConstraintsOnKnot(CAANURBSCurve<3>& curve, doubl
 		}
 		current_C_d = curve.eval(t, 1);
 
-		// auto test_0 = curve.eval(t);
-		// auto test_1 = curve.eval(t, 1);
-		// auto test_2 = curve.curvature(t);
-		// cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << endl;
-		// cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << endl;
-		// cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << endl << endl;
+		 //auto test_0 = curve.eval(t);
+		 //auto test_1 = curve.eval(t, 1);
+		 //auto test_2 = curve.curvature(t);
+		 //cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << endl;
+		 //cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << endl;
+		 //cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << endl << endl;
+		auto test_0 = curve.eval(t);
+		auto test_1 = curve.eval(t, 1);
+		test_1 = test_1 / test_1.norm();
+		auto test_2 = curve.curvature(t);
+		cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << "-----" << position[0] << " " << position[1] << " " << position[2] << endl;
+		cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << "-----" << tangent[0] << " " << tangent[1] << " " << tangent[2] << endl;
+		cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << "-----" << curvature[0] << " " << curvature[1] << " " << curvature[2] << endl << endl;
 	}
 }
 
@@ -1593,7 +1600,7 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 	int M = 3 * vn + total_degree; // varible:3*vn|position:3|tangent:2|curvature:2
 
 	//线性化迭代
-	for (int iter = 0; iter < 3; iter++) {
+	for (int iter = 0; iter < 5; iter++) {
 		CAADynamicMatrix Lag(M, M);
 		CAADynamicMatrix b(M, 1);
 		// calculate the constant term in derivation
@@ -1754,6 +1761,8 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 		// solve linear system
 		CAADynamicMatrix Sol = Lag.LUPSolve(b);
 
+		cout << "第" << iter << "次迭代：" << (Lag * Sol - b).norm() << endl;
+
 		// give the result
 		for (int i = 0; i < vn; i++)
 		{
@@ -1763,6 +1772,18 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 			P[1] = Sol[I + 1];
 			P[2] = Sol[I + 2];
 		}
+	}
+	for (auto& i : constraints) {
+		auto test_0 = curve.eval(i.t);
+		auto test_1 = curve.eval(i.t, 1);
+		test_1 = test_1 / test_1.norm();
+		auto test_2 = curve.curvature(i.t);
+
+		cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << "-----" << i.position[0] << " " << i.position[1] << " " << i.position[2] << endl;
+		cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << "-----" << i.tangent[0] << " " << i.tangent[1] << " " << i.tangent[2] << endl;
+		cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << "-----" << i.curvature[0] << " " << i.curvature[1] << " " << i.curvature[2] << endl << endl;
+		//double dd = test_1.dot(test_2);
+		//cout << dd << endl;
 	}
 }
 

@@ -36,8 +36,8 @@ void MyScene(Scene& sc) {
 	EnergyFairing::Constraint cons1;
 	cons1.t = 0.4;
 	cons1.level = 1;
-	cons1.position = curve->curve.eval(0.4);
-	cons1.tangent = curve->curve.eval(0.4, 1) + CAAVector<3>(1, 1, 1);
+	cons1.position = curve->curve.eval(0.4)+ 0.2*CAAVector<3>(-1, 1, 1);
+	cons1.tangent = curve->curve.eval(0.4, 1) + 3*CAAVector<3>(-1, 1, 1);
 	cons1.curvature = curve->curve.curvature(0.4) * 0;
 	curve->constraints.push_back(cons1);
 
@@ -55,8 +55,8 @@ void myUI(Widget* wnd) {
 	if (ImGui::Button("apply")) {
 		EnergyFairing EF;
 		EF.alpha = 100;
-		//EF.gamma = 0.01;
-		vector<bool> var;
+		EF.delta = 1;
+		vector<bool> var; 
 		EF.getVariablePts(curve->curve, curve->constraints, var);
 		for_each(var.begin(), var.end(), [](const bool& item) {cout << item; });
 		EF.multiGeoConstraint(curve->curve, curve->constraints, var);

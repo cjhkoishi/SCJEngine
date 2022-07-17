@@ -1517,7 +1517,7 @@ void EnergyFairing::addGeometricConstraintsOnKnot(CAANURBSCurve<3>& curve, doubl
 		b[3 * vn + 6] = curvature[coord_map[1]] * norm4_C_d;
 		for (int j = 0; j < cn; j++)
 		{
-			CAAVector<3> cst_P = curve.B_d(cst_idx[j], t, 1) * curve.control_points[cst_idx[j]];
+			CAAVector<3> cst_P = curve.B_d(cst_idx[j], t, 2) * curve.control_points[cst_idx[j]];
 			b[3 * vn + 5] -=
 				cst_P[0] * TxTx[coord_map[0]][0] + cst_P[1] * TxTx[coord_map[0]][1] + cst_P[2] * TxTx[coord_map[0]][2];
 			b[3 * vn + 6] -=
@@ -1538,12 +1538,12 @@ void EnergyFairing::addGeometricConstraintsOnKnot(CAANURBSCurve<3>& curve, doubl
 		}
 		current_C_d = curve.eval(t, 1);
 
-		 //auto test_0 = curve.eval(t);
-		 //auto test_1 = curve.eval(t, 1);
-		 //auto test_2 = curve.curvature(t);
-		 //cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << endl;
-		 //cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << endl;
-		 //cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << endl << endl;
+		//auto test_0 = curve.eval(t);
+		//auto test_1 = curve.eval(t, 1);
+		//auto test_2 = curve.curvature(t);
+		//cout << test_0[0] << " " << test_0[1] << " " << test_0[2] << endl;
+		//cout << test_1[0] << " " << test_1[1] << " " << test_1[2] << endl;
+		//cout << test_2[0] << " " << test_2[1] << " " << test_2[2] << endl << endl;
 		auto test_0 = curve.eval(t);
 		auto test_1 = curve.eval(t, 1);
 		test_1 = test_1 / test_1.norm();
@@ -1574,7 +1574,7 @@ void EnergyFairing::getVariablePts(CAANURBSCurve<3>& curve, vector<Constraint> c
 	}
 }
 
-void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables)
+void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables,double lambda)
 {
 	//预处理
 	int n = curve.control_points.size();
@@ -1600,7 +1600,7 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 	int M = 3 * vn + total_degree; // varible:3*vn|position:3|tangent:2|curvature:2
 
 	//线性化迭代
-	for (int iter = 0; iter < 5; iter++) {
+	for (int iter = 0; iter < 1000; iter++) {
 		CAADynamicMatrix Lag(M, M);
 		CAADynamicMatrix b(M, 1);
 		// calculate the constant term in derivation
@@ -1681,6 +1681,17 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 					Lag(I + 1, J + 1) = Lag(J + 1, I + 1) =
 					Lag(I + 2, J + 2) = Lag(J + 2, I + 2) = curve.B_d(var_idx[j], cons.t, 0);
 			}
+			// 设置b的位置约束
+			b[constraint_idx] = cons.position[0];
+			b[constraint_idx + 1] = cons.position[1];
+			b[constraint_idx + 2] = cons.position[2];
+			for (int j = 0; j < cn; j++)
+			{
+				CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 0) * curve.control_points[cst_idx[j]];
+				b[constraint_idx] -= cst_P[0];
+				b[constraint_idx + 1] -= cst_P[1];
+				b[constraint_idx + 2] -= cst_P[2];
+			}
 
 			if (cons.level >= 1) {
 				// 设置Lag矩阵的切向约束
@@ -1695,15 +1706,24 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 					Lag(J + coord_map[1], I + 1) = Lag(I + 1, J + coord_map[1]) = N_dj * cons.tangent[coord_map[2]];
 					Lag(J + coord_map[2], I + 1) = Lag(I + 1, J + coord_map[2]) = -N_dj * cons.tangent[coord_map[1]];
 				}
+				// 设置b的切向约束
+				b[constraint_idx + 3] = 0;
+				b[constraint_idx + 4] = 0;
+				for (int j = 0; j < cn; j++)
+				{
+					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 1) * curve.control_points[cst_idx[j]];
+					b[constraint_idx + 3] -= cst_P[coord_map[0]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[0]];
+					b[constraint_idx + 4] -= cst_P[coord_map[1]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[1]];
+				}
 			}
-			double dx = current_C_d[0], dy = current_C_d[1], dz = current_C_d[2];
-			double TxTx[3][3] = {
-				{dy * dy + dz * dz, -dx * dy, -dx * dz},
-				{-dx * dy, dx * dx + dz * dz, -dy * dz},
-				{-dz * dx, -dz * dy, dx * dx + dy * dy} };
+
 			if (cons.level >= 2) {
 				// 设置Lag矩阵的线性化曲率约束
-
+				double dx = current_C_d[0], dy = current_C_d[1], dz = current_C_d[2];
+				double TxTx[3][3] = {
+					{dy * dy + dz * dz, -dx * dy, -dx * dz},
+					{-dx * dy, dx * dx + dz * dz, -dy * dz},
+					{-dz * dx, -dz * dy, dx * dx + dy * dy} };
 				for (int j = 0, I = constraint_idx + 5; j < vn; j++)
 				{
 					int J = 3 * j;
@@ -1716,37 +1736,12 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 					Lag(J + 1, I + 1) = Lag(I + 1, J + 1) = N_dj * TxTx[coord_map[1]][1];
 					Lag(J + 2, I + 1) = Lag(I + 1, J + 2) = N_dj * TxTx[coord_map[1]][2];
 				}
-			}
-
-			// 设置b的位置约束
-			b[constraint_idx] = cons.position[0];
-			b[constraint_idx + 1] = cons.position[1];
-			b[constraint_idx + 2] = cons.position[2];
-			for (int j = 0; j < cn; j++)
-			{
-				CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 0) * curve.control_points[cst_idx[j]];
-				b[constraint_idx] -= cst_P[0];
-				b[constraint_idx + 1] -= cst_P[1];
-				b[constraint_idx + 2] -= cst_P[2];
-			}
-			if (cons.level >= 1) {
-				// 设置b的切向约束
-				b[constraint_idx + 3] = 0;
-				b[constraint_idx + 4] = 0;
-				for (int j = 0; j < cn; j++)
-				{
-					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 1) * curve.control_points[cst_idx[j]];
-					b[constraint_idx + 3] -= cst_P[coord_map[0]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[0]];
-					b[constraint_idx + 4] -= cst_P[coord_map[1]] * cons.tangent[coord_map[2]] - cst_P[coord_map[2]] * cons.tangent[coord_map[1]];
-				}
-			}
-			if (cons.level >= 2) {
 				// 设置b的线性化曲率约束
 				b[constraint_idx + 5] = cons.curvature[coord_map[0]] * norm4_C_d;
 				b[constraint_idx + 6] = cons.curvature[coord_map[1]] * norm4_C_d;
 				for (int j = 0; j < cn; j++)
 				{
-					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 1) * curve.control_points[cst_idx[j]];
+					CAAVector<3> cst_P = curve.B_d(cst_idx[j], cons.t, 2) * curve.control_points[cst_idx[j]];
 					b[constraint_idx + 5] -=
 						cst_P[0] * TxTx[coord_map[0]][0] + cst_P[1] * TxTx[coord_map[0]][1] + cst_P[2] * TxTx[coord_map[0]][2];
 					b[constraint_idx + 6] -=
@@ -1761,16 +1756,29 @@ void EnergyFairing::multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constrain
 		// solve linear system
 		CAADynamicMatrix Sol = Lag.LUPSolve(b);
 
-		cout << "第" << iter << "次迭代：" << (Lag * Sol - b).norm() << endl;
 
 		// give the result
 		for (int i = 0; i < vn; i++)
 		{
 			int I = 3 * i;
 			CAAVector<3>& P = curve.control_points[var_idx[i]];
-			P[0] = Sol[I];
-			P[1] = Sol[I + 1];
-			P[2] = Sol[I + 2];
+			P[0] = lambda * Sol[I] + (1 - lambda) * P[0];
+			P[1] = lambda * Sol[I + 1] + (1 - lambda) * P[1];
+			P[2] = lambda * Sol[I + 2] + (1 - lambda) * P[2];
+		}
+		double total_err = 0;
+		for (auto& i : constraints) {
+			if (i.level != 2)
+				continue;
+			auto test_2 = curve.curvature(i.t);
+			double err = (test_2 - i.curvature).norm();
+			total_err += err;
+			//double dd = test_1.dot(test_2);
+			//cout << dd << endl;
+		}
+		printf("第%i次迭代曲率误差：%f\n", iter, total_err);
+		if (total_err < 1e-6) {
+			break;
 		}
 	}
 	for (auto& i : constraints) {

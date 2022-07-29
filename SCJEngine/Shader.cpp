@@ -139,3 +139,63 @@ void Shader::setVec4(const string& name, const vec4& value)
 {
 	glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, (GLfloat*)&value);
 }
+
+void ComputeShader::compileRaw(const char* computeCode)
+{
+	// compute shader
+	char infoLog[512];	
+	int success;
+	unsigned compute;
+	compute = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(compute, 1, &computeCode, NULL);
+	glCompileShader(compute);
+
+	glGetShaderiv(compute, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(compute, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::COMPUTE::COMPILATION_FAILED\n" << infoLog << std::endl;
+	};
+
+	ID = glCreateProgram();
+	glAttachShader(ID, compute);
+	glLinkProgram(ID);
+	glGetProgramiv(ID, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(ID, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+	}
+
+}
+
+void ComputeShader::compile(const char* computePath)
+{
+	// 1. retrieve the vertex/fragment source code from filePath
+	std::string computeCode;
+	std::ifstream cShaderFile;
+	// ensure ifstream objects can throw exceptions:
+	cShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	try
+	{
+		// open files
+		cShaderFile.open(computePath);
+		std::stringstream vShaderStream, fShaderStream;
+		// read file's buffer contents into streams
+		vShaderStream << cShaderFile.rdbuf();
+		// close file handlers
+		cShaderFile.close();
+		// convert stream into string
+		computeCode = vShaderStream.str();
+	}
+	catch (std::ifstream::failure e)
+	{
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+	}
+	compileRaw(computeCode.c_str());
+}
+
+void ComputeShader::use()
+{
+	glUseProgram(ID);
+}

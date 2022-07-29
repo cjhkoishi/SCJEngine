@@ -39,4 +39,31 @@ public:
 	};
 };
 
+
+class ComputeShader {
+public:
+	unsigned ID;
+
+	void compileRaw(const char* computeCode);
+	void compile(const char* computePath);
+
+	void use();
+};
+
+class ComputeShaderAsset {
+public:
+	map<string, ComputeShader> asset;
+	ComputeShader operator[](string name) {
+		auto it = asset.find(name);
+		if (it != asset.end())
+			return it->second;
+		else {
+			auto& shader = asset[name];
+			shader.compile(("../SCJEngine/shader/" + name + ".comp").c_str());
+			return shader;
+		}
+	};
+};
+
 extern ShaderAsset shader_asset;
+extern ComputeShaderAsset compute_shader_asset;

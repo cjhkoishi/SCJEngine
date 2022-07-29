@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{85086381-2ab3-4c72-8335-979ee0f3ca31}</ProjectGuid>
-    <RootNamespace>JointTest</RootNamespace>
+    <ProjectGuid>{d657e61a-d42f-4db7-a336-521479ac34f7}</ProjectGuid>
+    <RootNamespace>CSTest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -70,21 +70,13 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <ExternalIncludePath>D:\code\c++\SCJEngine\SCJEngine;D:\code\c++\SCJEngine\SCJEngine\outer\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>D:\code\c++\SCJEngine\x64\$(Configuration);$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(SolutionDir)SCJEngine\outer\include;$(SolutionDir)SCJEngine;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)x64\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <ExternalIncludePath>D:\code\c++\SCJEngine\SCJEngine;D:\code\c++\SCJEngine\SCJEngine\outer\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>D:\code\c++\SCJEngine\x64\$(Configuration);$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(SolutionDir)SCJEngine\outer\include;$(SolutionDir)SCJEngine;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
+    <LibraryPath>$(SolutionDir)x64\$(Configuration)\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -145,13 +137,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CAANURBSCurve.cpp" />
+    <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Nurbs.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CAANURBSCurve.h" />
-    <ClInclude Include="Nurbs.h" />
+    <ClInclude Include="Canvas.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

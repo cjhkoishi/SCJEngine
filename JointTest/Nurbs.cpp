@@ -13,7 +13,9 @@ void Nurbs::update()
 			auto pt = curve.eval(t);
 			sample_data[i] = vec3(pt[0], pt[1], pt[2]);
 		}
-
+		for (auto& cons : constraints) {
+			cons.regularize();
+		}
 
 		isChanged = false;
 	}
@@ -66,13 +68,14 @@ void NurbsRenderer::render(const mat4& view, const mat4& proj)
 	glDrawArrays(GL_POINTS, 0, arc_pts.size());
 
 	for (auto& cons : nurbs->constraints) {
-		cons.regularize();
 		CAAVector<3> line[2];
 		line[0] = cons.position;
 		line[1] = cons.position + cons.tangent;
 		glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(double), line, GL_DYNAMIC_DRAW);
 		def.setVec4("color", vec4(0, 1, 1, 1));
 		glDrawArrays(GL_LINES, 0, 2);
+		if (cons.level < 2)
+			continue;
 		auto T = cons.tangent / cons.curvature.norm();
 		auto K = cons.curvature / pow(cons.curvature.norm(), 2);
 		double circle[101][3];

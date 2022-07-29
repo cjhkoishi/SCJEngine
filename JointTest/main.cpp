@@ -4,6 +4,8 @@
 
 Nurbs* curve;
 
+EnergyFairing::Constraint cons1;
+EnergyFairing::Constraint cons2;
 void MyScene(Scene& sc) {
 	//Object* cube = sc.createObject("CubeRoot");
 	//cube->addComponent<Mesh>();
@@ -32,40 +34,53 @@ void MyScene(Scene& sc) {
 	curve->curve.weights = { 1,sqrt(2),5,sqrt(2),1,2,1,0.5 };
 	curve->curve.increaseDegree(2);
 	curve->curve.insert(0.4);
+	curve->curve.insert(0.45);
+	curve->curve.insert(0.55);
+	curve->curve.insert(0.6);
 
-	EnergyFairing::Constraint cons1;
+
 	cons1.t = 0.4;
-	cons1.level = 1;
-	cons1.position = curve->curve.eval(0.4)+ 0.2*CAAVector<3>(-1, 1, 1);
-	cons1.tangent = curve->curve.eval(0.4, 1) + 3*CAAVector<3>(-1, 1, 1);
-	cons1.curvature = curve->curve.curvature(0.4) * 0;
+	cons1.level = 2;
+	cons1.position = curve->curve.eval(0.4) + 0.1 * CAAVector<3>(-1, 1, 1);
+	cons1.tangent = /*curve->curve.eval(0.4, 1) +*/ 1 * CAAVector<3>(1, 1, 0.05);
+	cons1.curvature = curve->curve.curvature(0.4) * 2;
+	cons1.regularize();
 	curve->constraints.push_back(cons1);
 
-	EnergyFairing::Constraint cons2;
 	cons2.t = 0.5;
 	cons2.level = 2;
 	cons2.position = curve->curve.eval(0.5);
 	cons2.tangent = curve->curve.eval(0.5, 1) + CAAVector<3>(1, -1, 1);
-	cons2.curvature = curve->curve.curvature(0.5)*4;
+	cons2.curvature = curve->curve.curvature(0.5) * 40/*20*/;
+	cons2.regularize();
 	curve->constraints.push_back(cons2);
 }
 
+EnergyFairing EF;
 void myUI(Widget* wnd) {
+
 	ImGui::Begin("Curve");
+	ImGui::InputDouble("alpha", &EF.alpha);
+	ImGui::InputDouble("beta", &EF.beta);
+	ImGui::InputDouble("gamma", &EF.gamma);
+	ImGui::InputDouble("delta", &EF.delta);
 	if (ImGui::Button("apply")) {
-		EnergyFairing EF;
-		EF.alpha = 100;
-		EF.delta = 1;
-		vector<bool> var; 
+		vector<bool> var;
 		EF.getVariablePts(curve->curve, curve->constraints, var);
 		for_each(var.begin(), var.end(), [](const bool& item) {cout << item; });
-		EF.multiGeoConstraint(curve->curve, curve->constraints, var);
+		EF.multiGeoConstraint(curve->curve, curve->constraints, var, 0.25);
+		curve->isChanged = true;
+	}
+	if (ImGui::Button("apply_single")) {
+		int b[2]{ 0,0 };
+		EF.addGeometricConstraintsOnKnot(curve->curve, 0.5, cons2.position, cons2.tangent, cons2.curvature, b);
 		curve->isChanged = true;
 	}
 	ImGui::End();
 }
 
 int main() {
+
 	Widget wnd;
 	wnd.setScene = MyScene;
 	wnd.drawUI = myUI;

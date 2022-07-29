@@ -549,7 +549,7 @@ public:
 	// 创建日期： 2022-06-27
 	// 版权所有： 浙江大学-几何与拓扑计算
 	//////////////////////////////////////////
-	void multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables);
+	void multiGeoConstraint(CAANURBSCurve<3>& curve, vector<Constraint> constraints, vector<bool> variables, double lambda = 1);
 };
 
 class CAANURBSWire {

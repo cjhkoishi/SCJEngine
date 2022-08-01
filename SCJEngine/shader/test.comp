@@ -2,14 +2,40 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-layout(rgba32f, binding = 0) uniform image2D imgOutput;
+layout(rgba32f, binding = 0) uniform imageBuffer imgOutput;
+
+uniform float a;
+uniform float b;
+uniform float c;
+
+vec3 lorenz(in vec3 pos){
+    return vec3(
+        a*(pos.y-pos.x),
+        pos.x*(b-pos.z)-pos.y,
+        pos.x*pos.y-c*pos.z);
+}
+
+vec3 RK4(vec3 pos,float dt){
+    vec3 k1=lorenz(pos);
+    vec3 k2=lorenz(pos+0.5*dt*k1);
+    vec3 k3=lorenz(pos+0.5*dt*k2);
+    vec3 k4=lorenz(pos+dt*k3);
+    return dt*(k1+ 2*k2 + 2*k3 + k4)/6;
+}
 
 void main() {
-    vec4 value = vec4(0.0, 0.0, 0.0, 1.0);
-    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
-	
-    value.x = float(texelCoord.x)/(gl_NumWorkGroups.x);
-    value.y = float(texelCoord.y)/(gl_NumWorkGroups.y);
-	
-    imageStore(imgOutput, texelCoord, value);
+    int Gx=int(gl_GlobalInvocationID.x);
+    vec4 value=imageLoad(imgOutput, Gx);
+
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+    value.xyz+=RK4(value.xyz,0.001);
+
+    imageStore(imgOutput, Gx, value);
 }

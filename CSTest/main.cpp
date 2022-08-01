@@ -5,7 +5,7 @@
 
 void MyScene(Scene& scene) {
 	scene.createObject("Canvas")->addComponent<Canvas>();
-	scene.createObject("Cube")->addComponent<Mesh>()->getObject()->addComponent<MeshRenderer>();
+	//scene.createObject("Cube")->addComponent<Mesh>()->getObject()->addComponent<MeshRenderer>();
 }
 
 int main() {

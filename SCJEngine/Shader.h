@@ -40,9 +40,8 @@ public:
 };
 
 
-class ComputeShader {
+class ComputeShader :public Shader {
 public:
-	unsigned ID;
 
 	void compileRaw(const char* computeCode);
 	void compile(const char* computePath);

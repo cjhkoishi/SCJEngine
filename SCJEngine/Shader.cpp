@@ -2,6 +2,7 @@
 #include "Shader.h"
 
 ShaderAsset shader_asset;
+ComputeShaderAsset compute_shader_asset;
 
 Shader::Shader() :
 	ID(-1)

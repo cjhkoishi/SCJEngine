@@ -37,7 +37,7 @@ void MyScene(Scene& scene) {
 	cube_sub->setTranslation(vec3(1, 1, 1));
 	cube->addChild(cube_sub);*/
 
-	canvas = scene.createObject("Canvas");
+	canvas = scene.createObject("Cloud");
 	auto wire2D = canvas->addComponent<Wire2D>();
 	cout << ((Component*)wire2D)->get_type_name() << endl;
 	canvas->addComponent<WireRenderer2D>();

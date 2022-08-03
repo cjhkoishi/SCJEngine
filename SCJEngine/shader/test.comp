@@ -32,6 +32,5 @@ void main() {
     value.xyz+=RK4(value.xyz,0.001);
     value.xyz+=RK4(value.xyz,0.001);
 
-
     imageStore(imgOutput, Gx, value);
 }

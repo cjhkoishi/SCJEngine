@@ -1,13 +1,14 @@
 #include "Canvas.h"
-
-void Canvas::start()
+#define N  50000
+#define STRINGIZE(a) #a
+void Cloud::start()
 {
 	shader = shader_asset["default"];
 	kernel = compute_shader_asset["test"];
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-#define N  50000
+
 	float test[N * 4];
 	auto random = []() {
 		return (float)rand() / RAND_MAX;
@@ -31,14 +32,15 @@ void Canvas::start()
 
 }
 
-void Canvas::render(const mat4& view, const mat4& proj)
+void Cloud::render(const mat4& view, const mat4& proj)
 {
-	kernel.use();	
+	kernel.use();
 	kernel.setFloat("a", a);
 	kernel.setFloat("b", b);
 	kernel.setFloat("c", c);
 	glBindImageTexture(0, TBO, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-	glDispatchCompute(N, 1, 1);
+	if (is_running)
+		glDispatchCompute(N, 1, 1);
 
 
 	shader.use();
@@ -52,9 +54,49 @@ void Canvas::render(const mat4& view, const mat4& proj)
 	glDrawArrays(GL_POINTS, 0, N);
 }
 
-void Canvas::onGui()
+void Cloud::onGui()
 {
 	ImGui::SliderFloat("a", &a, 0, 20);
 	ImGui::SliderFloat("b", &b, 0, 40);
 	ImGui::SliderFloat("c", &c, 0, 10);
+	ImGui::Checkbox("OK", &is_running);
+}
+
+void Canvas::start()
+{
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	float verts[] = {
+		-1,-1,0,
+		1,-1,0,
+		1,1,0,
+		-1,-1,0,
+		1,1,0,
+		-1,1,0,
+	};
+	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	shader = shader_asset["default"];
+}
+
+void Canvas::render(const mat4& view, const mat4& proj)
+{
+	shader.use();
+	shader.setMat4("model", getObject()->getWorldTransform());
+	shader.setMat4("view", view);
+	shader.setMat4("projection", proj);
+	shader.setVec4("color", vec4(1,0, 1, 1));
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBindVertexArray(VAO);
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+}
+
+void Canvas::onGui()
+{
 }

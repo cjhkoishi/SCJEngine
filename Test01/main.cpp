@@ -17,7 +17,7 @@ void MyUI(Widget* wnd)
 void MyScene(Scene& scene) {
 
 
-	canvas = scene.createObject("Canvas");
+	canvas = scene.createObject("Cloud");
 }
 
 int main() {

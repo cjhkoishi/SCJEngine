@@ -4,6 +4,7 @@
 #include "Canvas.h"
 
 void MyScene(Scene& scene) {
+	scene.createObject("Cloud")->addComponent<Cloud>();
 	scene.createObject("Canvas")->addComponent<Canvas>();
 	//scene.createObject("Cube")->addComponent<Mesh>()->getObject()->addComponent<MeshRenderer>();
 }

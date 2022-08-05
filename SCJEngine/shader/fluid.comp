@@ -1,0 +1,37 @@
+#version 460 core
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(rgba32f, binding = 0) uniform image2D image;
+uniform sampler2D image_sample;
+
+vec2 t2c(sampler2D img,ivec2 texel){
+    vec2 size=textureSize(img,0);
+    return (vec2(texel)+vec2(0.5))/size;
+}
+
+
+vec2 grad(vec2 coord){
+    vec2 r=coord-vec2(0.5);
+    return vec2(-r.y,r.x);
+}
+
+vec2 RK4(vec2 pos,float dt){
+    vec2 k1=grad(pos);
+    vec2 k2=grad(pos+0.5*dt*k1);
+    vec2 k3=grad(pos+0.5*dt*k2);
+    vec2 k4=grad(pos+dt*k3);
+    return dt*(k1+ 2*k2 + 2*k3 + k4)/6;
+}
+
+void main(){
+    
+    ivec2 G=ivec2(gl_GlobalInvocationID.xy);
+    vec2 TexUV=t2c(image_sample,G);
+    vec2 TexUV1=TexUV+RK4(TexUV,-0.06);
+    vec2 TexUV2=TexUV1+RK4(TexUV1,0.06);
+    vec4 x=texture(image_sample,TexUV);
+    vec4 x1=texture(image_sample,TexUV1);
+    vec4 x2=texture(image_sample,TexUV2);
+    x1=x1-(x2-x)*0.5;
+
+    imageStore(image,G,x1);
+}

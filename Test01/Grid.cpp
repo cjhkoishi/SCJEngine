@@ -6,10 +6,24 @@ void Grid::construct(int num_W, int num_H)
 	X = Y = -5;
 	this->num_W = num_W;
 	this->num_H = num_H;
+	double wl = W / num_W, hl = H / num_H;
 	data.resize(num_W * num_H);
 
+	for (int i = 0; i < container->balls.size(); i++) {
+		auto& ball = container->balls[i];
+		dvec2 AA = ball.pos - dvec2(ball.r);
+		dvec2 BB = ball.pos + dvec2(ball.r);
+		ivec2 cell_AA((int)((AA.x - X) / wl), (int)((AA.y - Y) / hl));
+		ivec2 cell_BB((int)((BB.x - X) / wl), (int)((BB.y - Y) / hl));
+		for (int xc = cell_AA.x; xc <= cell_BB.x; xc++) {
+			for (int yc = cell_AA.y; yc <= cell_BB.y; yc++) {
+				data[xc + yc * num_W].obj_indices.push_back(i);
+			}
+		}
+	}
+
 	vector<vec2> pts((num_W + 1) * (num_H + 1));
-	double wl = W / num_W, hl = H / num_H;
+
 	for (int i = 0; i <= num_H; i++) {
 		for (int j = 0; j <= num_W; j++) {
 			pts[i * (num_W + 1) + j] = vec2(X + j * wl, Y + i * hl);
@@ -58,6 +72,7 @@ void Grid::Bresenham()
 	activated_cells.clear();
 	double wl = W / num_W, hl = H / num_H;
 	bool is_swap = abs(ray->dir.y * wl) > abs(hl * ray->dir.x);
+	set<int> ball_indices;
 
 	if (is_swap) {
 		swap(wl, hl);
@@ -72,6 +87,9 @@ void Grid::Bresenham()
 		if (is_swap)
 			swap(cell[0], cell[1]);
 		activated_cells.push_back(cell);
+		for (auto& index : data[cell[0] + cell[1] * (is_swap ? num_H : num_W)].obj_indices) {
+			ball_indices.insert(index);
+		}
 	};
 
 	double k = ray->dir.y / ray->dir.x;
@@ -143,6 +161,12 @@ void Grid::Bresenham()
 		swap(ray->pos.x, ray->pos.y);
 		swap(num_W, num_H);
 	}
+
+	for (auto& index : ball_indices) {
+		auto& ball = container->balls[index];
+		if (ray->RayHitBall(ball.pos, ball.r))
+			ball.activated = true;
+	}
 }
 
 void Grid::render(const mat4& view, const mat4& proj)
@@ -165,7 +189,7 @@ void Grid::render(const mat4& view, const mat4& proj)
 			(item.y + 1) * (num_W + 1) + item.x
 		};
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(edge), edge, GL_DYNAMIC_DRAW);
-		shader.setVec4("color", vec4(1, 0, 0, 1));
+		shader.setVec4("color", vec4(1, 0, 0, 0.2));
 		glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, 0);
 	}
 	shader.setVec4("color", vec4(0, 1, 0, 1));

@@ -96,7 +96,13 @@ void Canvas::start()
 
 	glGenTextures(1, &TEX1);
 	glBindTexture(GL_TEXTURE_2D, TEX1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, s[0], s[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, s[0], s[1], 0, GL_RGBA, GL_FLOAT, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glGenTextures(1, &TEX2);
+	glBindTexture(GL_TEXTURE_2D, TEX2);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, s[0], s[1], 0, GL_RGBA, GL_FLOAT, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
@@ -108,31 +114,31 @@ void Canvas::start()
 
 void Canvas::render(const mat4& view, const mat4& proj)
 {
-	static bool turn = false;
-	turn = !turn;
 	kernel.use();
-	if (turn) {
-		glBindImageTexture(0, TEX1, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-		glBindTexture(GL_TEXTURE_2D, TEX0);
-	}
-	else {
-		glBindImageTexture(0, TEX0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-		glBindTexture(GL_TEXTURE_2D, TEX1);
-	}
 
-	kernel.setInt("image_sample", 0);
+	glBindImageTexture(0, TEX1, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	glBindTexture(GL_TEXTURE_2D, TEX0);
+	kernel.setInt("pass", 0);
 	glDispatchCompute(360, 360, 1);
 
+	glBindImageTexture(0, TEX2, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+	glBindTexture(GL_TEXTURE_2D, TEX1);
+	kernel.setInt("pass", 1);
+	glDispatchCompute(360, 360, 1);
+
+	glBindImageTexture(0, TEX1, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, TEX0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, TEX2);
+	glActiveTexture(GL_TEXTURE0);
+	kernel.setInt("pass", 2);
+	glDispatchCompute(360, 360, 1);
+	swap(TEX0, TEX1);
 
 	shader.use();
 	glActiveTexture(GL_TEXTURE0);
-	if (turn) {
-		glBindTexture(GL_TEXTURE_2D, TEX1);
-	}
-	else {
-		glBindTexture(GL_TEXTURE_2D, TEX0);
-	}
-
+	glBindTexture(GL_TEXTURE_2D, TEX0);
 	shader.setMat4("model", getObject()->getWorldTransform());
 	shader.setMat4("view", view);
 	shader.setMat4("projection", proj);

@@ -100,7 +100,7 @@ void Ray::start()
 void Ray::onGui()
 {
 	float buf = atan2(dir.y, dir.x);
-	ImGui::SliderAngle("angle", &buf,0);
+	ImGui::SliderAngle("angle", &buf,-90,90);
 	dir = vec2(cos(buf), sin(buf));
 }
 

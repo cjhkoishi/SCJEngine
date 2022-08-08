@@ -21,7 +21,7 @@ class Canvas :public Renderer
 {
 	COMPONENT
 public:
-	GLuint VBO, VAO, EBO, TEX0, TEX1;
+	GLuint VBO, VAO, EBO, TEX0, TEX1, TEX2;
 	Shader shader;
 	ComputeShader kernel;
 

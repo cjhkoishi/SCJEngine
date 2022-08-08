@@ -162,11 +162,14 @@ void Grid::Bresenham()
 		swap(num_W, num_H);
 	}
 
+	int count = 0;
 	for (auto& index : ball_indices) {
 		auto& ball = container->balls[index];
+		count++;
 		if (ray->RayHitBall(ball.pos, ball.r))
 			ball.activated = true;
 	}
+	cout << count << endl;
 }
 
 void Grid::render(const mat4& view, const mat4& proj)

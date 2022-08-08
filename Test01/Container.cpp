@@ -24,7 +24,7 @@ void Container::start()
 	glVertexAttribPointer(0, 2, GL_DOUBLE, GL_FALSE, 2 * sizeof(double), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	balls.resize(500);
+	balls.resize(10000);
 	for (auto& item : balls) {
 		item.pos[0] = random() * 1000;
 		item.pos[1] = random() * 1000;

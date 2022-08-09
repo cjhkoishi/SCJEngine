@@ -10,6 +10,11 @@ vec2 t2c(sampler2D img,ivec2 texel){
     return (vec2(texel)+vec2(0.5))/size;
 }
 
+vec2 c2t(sampler2D img, vec2 coord){
+    vec2 size=textureSize(img,0);
+    return coord*size-vec2(0.5);
+}
+
 
 vec2 grad(vec2 coord){
     vec2 r=coord-vec2(0.5);
@@ -43,13 +48,21 @@ void main(){
             break;
         }
         case 2:{
-            vec4 x0=texture(image_sample,TexUV);
-            vec4 x2=texture(image_sample1,TexUV);
+            vec2 TexUV1=TexUV+RK4(TexUV,-0.01);
+            vec4 x0=texture(image_sample,TexUV1);
+            vec4 x2=texture(image_sample1,TexUV1);
             vec4 x1=imageLoad(image,G);
+            vec2 G_f=c2t(image_sample,TexUV1);
+            // int G_fx0=int(floor(G_f.x));
+            // int G_fy0=int(floor(G_f.y));
+            // int G_fx1=int(ceil(G_f.x));
+            // int G_fy1=int(ceil(G_f.y));
+
             x1+=(x0-x2)*0.5;
             imageStore(image,G,x1);
             break;
         }
+        
     }
 
 }

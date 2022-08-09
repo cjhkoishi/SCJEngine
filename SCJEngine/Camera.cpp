@@ -9,7 +9,7 @@ void Camera::start()
 
 void Camera::update()
 {
-	if (!controllable)
+	if (!controllable||glfwGetKey(getObject()->getScene()->getWidget()->getGLFWwindow(), GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
 		return;
 	Widget* app = _object->getScene()->getWidget();
 	auto wo = app->input_system.getWheelOffset();
@@ -20,7 +20,7 @@ void Camera::update()
 	}
 	auto co = app->input_system.getCursorOffset();
 	if (app->input_system.getMouseButtonState(0)) {
-		float angle = length(co);
+		float angle = length(co); 
 		if (angle != 0) {
 			_object->setTransform(translate(_object->getTransform(), vec3(0, 0, -5)));
 			_object->setTransform(rotate(_object->getTransform(), angle * 0.01f, vec3(-co[1], -co[0], 0)));

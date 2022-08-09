@@ -12,7 +12,7 @@ void MyScene(Scene& scene) {
 	scene.findByName("Camera")->setScale(vec3(200,200,1));
 	auto container = scene.createObject("cont")->addComponent<Container>();
 	auto ray = scene.createObject("ray")->addComponent<Ray>();
-	auto bvh = scene.createObject("Tree")->addComponent<Grid>();
+	auto bvh = scene.createObject("Tree")->addComponent<BVHTree>();
 	ray->pos = dvec2(-150, 512);
 	ray->dir = dvec2(1, 0.2);
 	bvh->container = container;
